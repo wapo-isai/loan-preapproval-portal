@@ -1,0 +1,26 @@
+/* features.component.css */
+.features-section {
+  background-color: #f4f6f8; /* Light gray background for the whole features area */
+  padding: 50px 20px; /* Padding around the section */
+  display: flex;
+  justify-content: center; /* Center the cards container if it's not full width */
+  gap: 30px; /* Space between feature cards */
+  flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  /* Tablet size */
+  .features-section {
+    flex-direction: column;
+    align-items: center; /* Center cards when stacked */
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile size */
+  .features-section {
+    padding: 40px 15px;
+  }
+}

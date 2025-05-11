@@ -1,0 +1,249 @@
+/* signup-page.component.css */
+:host {
+  display: flex;
+  min-height: 100vh; /* Ensure the component takes full viewport height */
+}
+
+.signup-container {
+  display: flex;
+  width: 100%;
+  flex-grow: 1;
+}
+
+/* Left Panel Styling */
+.left-panel {
+  flex-basis: 40%; /* Adjust as needed */
+  background-color: #1a237e; /* Dark blue from image */
+  color: #ffffff;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.left-panel .logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  align-self: flex-start; /* Align logo to the top-left */
+}
+
+.welcome-text {
+  text-align: left; /* Text is left-aligned in the image */
+  max-width: 400px; /* Constrain width */
+}
+
+.welcome-text h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.welcome-text p {
+  font-size: 1.1em;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.footer-text {
+  font-size: 0.9em;
+  opacity: 0.8;
+  align-self: flex-start; /* Align footer to the bottom-left */
+}
+
+/* Right Panel Styling (Form) */
+.right-panel {
+  flex-basis: 60%; /* Adjust as needed */
+  background-color: #ffffff;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center the form vertically */
+  align-items: center; /* Center the form container horizontally */
+}
+
+.form-container {
+  width: 100%;
+  max-width: 450px; /* Max width for the form itself */
+}
+
+.form-container h2 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.form-container .sub-heading {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1em;
+}
+
+.name-fields {
+  display: flex;
+  gap: 20px; /* Space between first and last name fields */
+}
+
+.name-fields .form-group {
+  flex: 1; /* Each name field takes equal space */
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 15px;
+  color: #999;
+  font-size: 0.9em;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 15px 12px 40px; /* Padding to make space for icon */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  background-color: #f9f9f9; /* Light gray background for input */
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #0056b3; /* Primary blue border on focus */
+  box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+}
+
+.visibility-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #777;
+  padding: 5px;
+}
+
+.visibility-toggle i {
+  font-size: 1em;
+}
+
+.password-hint {
+  display: block;
+  font-size: 0.8em;
+  color: #777;
+  margin-top: 5px;
+}
+
+.error-message small {
+  color: #d9534f; /* Bootstrap danger color for errors */
+  font-size: 0.8em;
+  display: block;
+  margin-top: 4px;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background-color: #0056b3; /* Primary blue */
+  color: white;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #004494; /* Darker blue on hover */
+}
+
+.btn-submit:disabled {
+  background-color: #a0c3e2; /* Lighter, disabled state */
+  cursor: not-allowed;
+}
+
+.signin-link {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.signin-link a {
+  color: #0056b3; /* Primary blue */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signin-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  /* Tablets and smaller */
+  .signup-container {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    flex-basis: auto; /* Reset basis for column layout */
+    width: 100%;
+  }
+
+  .left-panel {
+    min-height: 300px; /* Give some min height to the blue panel */
+    padding: 30px;
+    justify-content: center; /* Center content more */
+    text-align: center; /* Center text for smaller welcome panel */
+  }
+  .left-panel .logo,
+  .left-panel .footer-text,
+  .welcome-text {
+    align-self: center;
+    text-align: center;
+  }
+  .welcome-text h1 {
+    font-size: 2em;
+  }
+
+  .right-panel {
+    padding: 40px 20px; /* Adjust padding */
+  }
+
+  .form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Smaller mobile devices */
+  .name-fields {
+    flex-direction: column;
+    gap: 0; /* Remove gap if stacking, rely on form-group margin */
+  }
+  .name-fields .form-group {
+    margin-bottom: 20px; /* Ensure margin when stacked */
+  }
+  .form-container h2 {
+    font-size: 1.8em;
+  }
+}

@@ -1,0 +1,49 @@
+/* feature-card.component.css */
+.feature-card {
+  background-color: #ffffff; /* White background for the card itself */
+  padding: 30px;
+  border: 1px solid #e0e0e0; /* Subtle border for the card */
+  border-radius: 8px; /* Slightly rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  text-align: left;
+  flex-basis: 300px; /* Base width for each card, allows them to grow */
+  flex-grow: 1;
+  max-width: 350px; /* Max width to prevent them from becoming too wide */
+  box-sizing: border-box; /* Ensure padding and border are included in the width/height */
+}
+
+.feature-card h3 {
+  font-size: 1.4em;
+  color: #0056b3; /* Primary blue for the card title */
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.feature-card p {
+  font-size: 0.95em;
+  color: #444; /* Dark gray for description text */
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* Ensure cards take full width when stacked on smaller screens if inside a flex column */
+@media (max-width: 992px) {
+  .feature-card {
+    flex-basis: 80%; /* Allow cards to take more width when stacking */
+    max-width: 450px; /* Adjust max-width as needed */
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-card {
+    flex-basis: 100%; /* Full width on mobile */
+    padding: 25px;
+  }
+  .feature-card h3 {
+    font-size: 1.3em;
+  }
+  .feature-card p {
+    font-size: 0.9em;
+  }
+}

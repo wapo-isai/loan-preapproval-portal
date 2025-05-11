@@ -1,0 +1,244 @@
+<div class="profile-page-container">
+  <header class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your personal information and documents</p>
+  </header>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+    <section class="form-section card">
+      <div class="section-header">
+        <h2>Personal Information</h2>
+        <p>Update your personal details and address</p>
+      </div>
+
+      <div formGroupName="personalInformation">
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input
+            type="text"
+            id="fullName"
+            formControlName="fullName"
+            placeholder="John Doe"
+          />
+          <div
+            *ngIf="
+              personalInfo.get('fullName')?.invalid &&
+              personalInfo.get('fullName')?.touched
+            "
+            class="error-message"
+          >
+            <small *ngIf="personalInfo.get('fullName')?.errors?.['required']"
+              >Full name is required.</small
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="streetAddress">Street Address</label>
+          <input
+            type="text"
+            id="streetAddress"
+            formControlName="streetAddress"
+            placeholder="123 Main St"
+          />
+          <div
+            *ngIf="
+              personalInfo.get('streetAddress')?.invalid &&
+              personalInfo.get('streetAddress')?.touched
+            "
+            class="error-message"
+          >
+            <small
+              *ngIf="personalInfo.get('streetAddress')?.errors?.['required']"
+              >Street address is required.</small
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              formControlName="city"
+              placeholder="Anytown"
+            />
+            <div
+              *ngIf="
+                personalInfo.get('city')?.invalid &&
+                personalInfo.get('city')?.touched
+              "
+              class="error-message"
+            >
+              <small *ngIf="personalInfo.get('city')?.errors?.['required']"
+                >City is required.</small
+              >
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="state">State</label>
+            <input
+              type="text"
+              id="state"
+              formControlName="state"
+              placeholder="CA"
+            />
+            <div
+              *ngIf="
+                personalInfo.get('state')?.invalid &&
+                personalInfo.get('state')?.touched
+              "
+              class="error-message"
+            >
+              <small *ngIf="personalInfo.get('state')?.errors?.['required']"
+                >State is required.</small
+              >
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="zipCode">ZIP Code</label>
+            <input
+              type="text"
+              id="zipCode"
+              formControlName="zipCode"
+              placeholder="12345"
+            />
+            <div
+              *ngIf="
+                personalInfo.get('zipCode')?.invalid &&
+                personalInfo.get('zipCode')?.touched
+              "
+              class="error-message"
+            >
+              <small *ngIf="personalInfo.get('zipCode')?.errors?.['required']"
+                >ZIP code is required.</small
+              >
+              <small *ngIf="personalInfo.get('zipCode')?.errors?.['pattern']"
+                >Invalid ZIP code format.</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section card">
+      <div class="section-header">
+        <h2>Employment Information</h2>
+        <p>Provide details about your current employment</p>
+      </div>
+
+      <div formGroupName="employmentInformation">
+        <div class="form-group">
+          <label for="employmentStatus">Employment Status</label>
+          <select id="employmentStatus" formControlName="employmentStatus">
+            <option value="" disabled>Select your employment status</option>
+            <option *ngFor="let status of employmentStatuses" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+          <div
+            *ngIf="
+              employmentInfo.get('employmentStatus')?.invalid &&
+              employmentInfo.get('employmentStatus')?.touched
+            "
+            class="error-message"
+          >
+            <small
+              *ngIf="employmentInfo.get('employmentStatus')?.errors?.['required']"
+              >Employment status is required.</small
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="employmentDetails">Employment Details</label>
+          <textarea
+            id="employmentDetails"
+            formControlName="employmentDetails"
+            rows="4"
+            placeholder="Provide details about your employer, position, and duration of employment"
+          ></textarea>
+        </div>
+        <p class="form-hint">
+          This information helps us assess your loan eligibility.
+        </p>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="section-header">
+        <h2>Document Upload</h2>
+        <p>Upload verification documents for your mortgage application</p>
+      </div>
+
+      <div class="document-upload-container">
+        <div class="upload-card card">
+          <div class="upload-header">
+            <i class="fas fa-upload icon"></i>
+            <h3>Proof of Income</h3>
+          </div>
+          <p>
+            Upload pay stubs, W2 forms, or tax returns as proof of your income.
+          </p>
+          <input
+            type="file"
+            id="proofOfIncome"
+            (change)="onFileSelected($event, 'proofOfIncome')"
+            #proofOfIncomeInput
+            hidden
+          />
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="proofOfIncomeInput.click()"
+          >
+            Choose File
+          </button>
+          <span class="file-name">{{
+            proofOfIncomeFileName || "No file chosen"
+          }}</span>
+        </div>
+
+        <div class="upload-card card">
+          <div class="upload-header">
+            <i class="fas fa-file-alt icon"></i>
+            <h3>Credit Report</h3>
+          </div>
+          <p>
+            Upload your recent credit report or authorization to pull your
+            credit.
+          </p>
+          <input
+            type="file"
+            id="creditReport"
+            (change)="onFileSelected($event, 'creditReport')"
+            #creditReportInput
+            hidden
+          />
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="creditReportInput.click()"
+          >
+            Choose File
+          </button>
+          <span class="file-name">{{
+            creditReportFileName || "No file chosen"
+          }}</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary btn-save-profile"
+        [disabled]="profileForm.invalid"
+      >
+        <i class="fas fa-save"></i> Save Profile
+      </button>
+    </div>
+  </form>
+</div>

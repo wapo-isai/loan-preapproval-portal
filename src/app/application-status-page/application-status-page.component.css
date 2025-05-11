@@ -1,0 +1,343 @@
+/* application-status-page.component.css */
+:host {
+  display: block;
+  background-color: #f4f6f8; /* Light gray background for the whole page */
+  padding: 30px;
+  min-height: calc(100vh - 60px); /* Adjust as needed */
+}
+
+.status-page-container {
+  max-width: 800px; /* Slightly narrower for status display */
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 2.2em;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.page-header p {
+  font-size: 1em;
+  color: #666;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  margin-bottom: 30px;
+}
+
+.loading-indicator,
+.error-message {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.1em;
+  color: #555;
+}
+.error-message {
+  color: #d9534f;
+}
+
+/* Application Summary */
+.application-summary .summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Align badge to top right of text block */
+  margin-bottom: 20px;
+}
+
+.summary-header h2 {
+  font-size: 1.8em;
+  font-weight: 500;
+  color: #343a40;
+  margin: 0 0 3px 0;
+}
+
+.summary-header .submitted-date {
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 15px; /* Pill shape */
+  font-size: 0.85em;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.status-submitted {
+  background-color: #6c757d; /* Gray */
+}
+.status-under-review {
+  background-color: #007bff; /* Blue */
+}
+.status-info-required {
+  background-color: #ffc107;
+  color: #333; /* Yellow */
+}
+.status-approved {
+  background-color: #28a745; /* Green */
+}
+.status-rejected {
+  background-color: #dc3545; /* Red */
+}
+.status-default {
+  background-color: #adb5bd;
+}
+
+/* Progress Bar */
+.progress-section {
+  margin-bottom: 25px;
+}
+.progress-section label {
+  display: block;
+  font-size: 0.9em;
+  color: #495057;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.progress-bar-container {
+  width: calc(100% - 50px); /* Leave space for percentage */
+  height: 12px;
+  background-color: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+.progress-bar {
+  height: 100%;
+  background-color: #007bff; /* Blue for progress */
+  border-radius: 6px 0 0 6px; /* Keep left radius if progress > 0 */
+  transition: width 0.5s ease-in-out;
+}
+.progress-percentage {
+  display: inline-block;
+  width: 45px; /* Space for percentage text */
+  text-align: right;
+  font-size: 0.9em;
+  color: #495057;
+  font-weight: 500;
+  vertical-align: middle;
+  margin-left: 5px;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+.detail-item .detail-label {
+  display: block;
+  font-size: 0.85em;
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+.detail-item .detail-value {
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #343a40;
+}
+
+/* Application Timeline */
+.application-timeline h3 {
+  font-size: 1.4em;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+}
+.timeline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+/* Vertical line for timeline */
+.timeline-list::before {
+  content: "";
+  position: absolute;
+  left: 10px; /* Position relative to the icon's center */
+  top: 5px; /* Start slightly below the first icon's top */
+  bottom: 5px; /* End slightly above the last icon's bottom */
+  width: 2px;
+  background-color: #e0e0e0;
+  z-index: 0;
+}
+
+.timeline-item {
+  display: flex;
+  position: relative;
+  padding-left: 40px; /* Space for icon and line */
+  margin-bottom: 25px;
+}
+.timeline-item.empty {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.timeline-icon-container {
+  position: absolute;
+  left: 0;
+  top: 0; /* Adjust if text alignment causes issues */
+  width: 22px; /* Diameter of the circle around icon */
+  height: 22px;
+  background-color: #fff; /* To overlap the line */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  border: 2px solid #e0e0e0; /* Match line color or accent */
+}
+.timeline-item.first-item .timeline-icon-container {
+  /* No special styling needed if line starts/ends properly */
+}
+
+.timeline-icon {
+  font-size: 0.8em; /* Adjust icon size inside the circle */
+  color: #007bff; /* Default icon color */
+}
+/* Specific icon colors if needed */
+.fa-file-alt {
+  color: #007bff;
+}
+.fa-clock {
+  color: #ffc107;
+}
+.fa-check-circle {
+  color: #28a745;
+}
+.fa-times-circle {
+  color: #dc3545;
+}
+.fa-exclamation-circle {
+  color: #fd7e14;
+}
+
+.timeline-content {
+  flex: 1;
+}
+.timeline-status-title {
+  font-size: 1em;
+  font-weight: 500;
+  color: #343a40;
+  margin: 0 0 5px 0;
+}
+.timeline-status-title strong {
+  margin-right: 10px;
+}
+.timeline-date {
+  font-size: 0.85em;
+  color: #6c757d;
+  font-weight: normal;
+}
+.timeline-description {
+  font-size: 0.9em;
+  color: #495057;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Contact Info */
+.contact-info {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+/* Demo Controls */
+.demo-controls-card h3 {
+  font-size: 1.4em;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 5px;
+}
+.demo-controls-card p {
+  font-size: 0.9em;
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+.demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.demo-buttons .btn {
+  font-size: 0.85em;
+  padding: 6px 12px;
+  border: 1px solid transparent; /* Base for non-active */
+}
+.demo-buttons .btn.active {
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+.demo-buttons .btn-info {
+  background-color: #007bff;
+  color: white;
+}
+.demo-buttons .btn-info.active {
+  border-color: #0056b3;
+}
+.demo-buttons .btn-success {
+  background-color: #28a745;
+  color: white;
+}
+.demo-buttons .btn-success.active {
+  border-color: #1e7e34;
+}
+.demo-buttons .btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+.demo-buttons .btn-danger.active {
+  border-color: #b02a37;
+}
+.demo-buttons
+  .btn:not(.active):not(.btn-info):not(.btn-success):not(.btn-danger) {
+  /* Default for submitted */
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+}
+.demo-buttons
+  .btn:not(.active):not(.btn-info):not(.btn-success):not(.btn-danger):hover {
+  background-color: #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 20px;
+  }
+  .details-grid {
+    grid-template-columns: 1fr;
+  } /* Stack details on small screens */
+  .summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .status-badge {
+    margin-top: 10px;
+  }
+  .progress-bar-container {
+    width: calc(100% - 60px);
+  } /* Adjust for smaller screens */
+}

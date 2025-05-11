@@ -1,1 +1,53 @@
-/* You can add global styles to this file, and also import other style files */
+/* Basic Reset & Body Styles */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #333;
+  background-color: #f4f6f8;
+  line-height: 1.6;
+}
+
+.container {
+  /* Optional: A general container for centered content */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px; /* Default padding */
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  border: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #0056b3; /* Dark blue from image */
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #004494;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #0056b3; /* Dark blue text */
+  border: 1px solid #0056b3; /* Optional: if you want a border like "Learn More" */
+}
+
+.btn-secondary:hover {
+  background-color: #e6f0ff; /* Light blue hover */
+}
+
+.btn-large {
+  padding: 12px 28px;
+  font-size: 18px;
+}
+
+/* Add more global styles as needed */

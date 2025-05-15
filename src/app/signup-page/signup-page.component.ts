@@ -1,26 +1,37 @@
+// src/app/signup-page/signup-page.component.ts
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core'; // Added OnInit
 import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service'; // Import AuthService
 
 @Component({
   selector: 'app-signup-page',
-  standalone: true,
+  standalone: true, // Assuming standalone
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './signup-page.component.html',
-  styleUrl: './signup-page.component.css',
+  styleUrls: ['./signup-page.component.css'], // Corrected 'styleUrl' to 'styleUrls'
 })
-export class SignupPageComponent {
+export class SignupPageComponent implements OnInit {
+  // Implemented OnInit
   signupForm!: FormGroup;
   passwordVisible: boolean = false;
+  registrationError: string | null = null;
+  registrationSuccess: string | null = null;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService, // Inject AuthService
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    // Added ngOnInit
     this.signupForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
@@ -30,13 +41,34 @@ export class SignupPageComponent {
   }
 
   onSubmit(): void {
+    this.registrationError = null;
+    this.registrationSuccess = null;
     if (this.signupForm.valid) {
-      console.log('Form Submitted!', this.signupForm.value);
-      // Here you would typically send the data to your backend service
-      // e.g., this.authService.signup(this.signupForm.value).subscribe(...)
+      this.authService.performRegistration(this.signupForm.value).subscribe({
+        next: (response) => {
+          // Assuming backend returns a success message or user object
+          console.log('Registration successful', response);
+          this.registrationSuccess =
+            'Registration successful! Please proceed to sign in.';
+          // Option 1: Navigate to login page
+          // this.router.navigate(['/signin']);
+
+          // Option 2: If backend auto-logs in and returns AuthResponse
+          // if (response && response.token) {
+          //   this.authService.login(response.token, { id: response.id, /* other user details */ });
+          // } else {
+          //   this.router.navigate(['/signin']);
+          // }
+        },
+        error: (err) => {
+          console.error('Registration failed', err);
+          this.registrationError =
+            err.error?.message ||
+            err.statusText ||
+            'Registration failed. Please try again.';
+        },
+      });
     } else {
-      console.log('Form is invalid');
-      // Mark all fields as touched to display validation messages
       this.signupForm.markAllAsTouched();
     }
   }
@@ -45,7 +77,7 @@ export class SignupPageComponent {
     this.passwordVisible = !this.passwordVisible;
   }
 
-  // Helper getters for easy access to form controls in the template for validation
+  // Helper getters
   get firstName() {
     return this.signupForm.get('firstName');
   }

@@ -14,7 +14,7 @@ This is the Angular-based frontend for a Loan Eligibility & Pre-Approval System.
 
 ## 🧰 Built With
 
-- [Angular](https://angular.io/) v18 (replace with your version)
+- [Angular](https://angular.io/) v18
 - [TypeScript](https://www.typescriptlang.org/)
 - REST APIs connected to Spring Boot backend
 

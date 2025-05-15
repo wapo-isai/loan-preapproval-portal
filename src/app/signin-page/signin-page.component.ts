@@ -1,3 +1,4 @@
+// src/app/signin-page/signin-page.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
@@ -6,25 +7,25 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { AuthService } from '../auth.service';
-import { Router } from '@angular/router';
+import { Router } from '@angular/router'; // Router is already imported
+import { AuthService, AuthResponse } from '../auth/auth.service'; // Ensure correct path and import AuthResponse
 
 @Component({
   selector: 'app-signin-page',
-  standalone: true,
+  standalone: true, // Assuming standalone
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './signin-page.component.html',
-  styleUrl: './signin-page.component.css',
+  styleUrls: ['./signin-page.component.css'], // Corrected 'styleUrl' to 'styleUrls'
 })
 export class SigninPageComponent implements OnInit {
   signinForm!: FormGroup;
   passwordVisible: boolean = false;
-  loginError: string | null = null; // To display login errors
+  loginError: string | null = null;
 
   constructor(
-    private fb: FormBuilder, // private authService: AuthService, // Example // private
-    private authService: AuthService, // Inject AuthService
-    private router: Router
+    private fb: FormBuilder,
+    private authService: AuthService, // AuthService is injected
+    private router: Router // Router is injected
   ) {}
 
   ngOnInit(): void {
@@ -35,26 +36,23 @@ export class SigninPageComponent implements OnInit {
   }
 
   onSubmit(): void {
-    this.loginError = null; // Reset error on new submission
+    this.loginError = null;
     if (this.signinForm.valid) {
-      console.log('Sign In Attempt:', this.signinForm.value);
-      const email = this.signinForm.value.email;
-      const password = this.signinForm.value.password;
-      // **REAL IMPLEMENTATION:**
-      // this.authService.login(this.signinForm.value.email, this.signinForm.value.password)
-      //   .subscribe({
-      //     next: (response) => {
-      //       console.log('Login successful', response);
-      //       this.router.navigate(['/dashboard']); // Navigate to a protected route
-      //     },
-      //     error: (err) => {
-      //       console.error('Login failed', err);
-      //       this.loginError = err.error?.message || 'Invalid email or password. Please try again.';
-      //     }
-      //   });
+      this.authService.performLogin(this.signinForm.value).subscribe({
+        next: (response: AuthResponse) => {
+          console.log('Login successful', response);
+          // AuthService.performLogin already calls the local .login() method which handles token storage and navigation
+        },
+        error: (err) => {
+          console.error('Login failed', err);
+          this.loginError =
+            err.error?.message ||
+            err.statusText ||
+            'Invalid email or password. Please try again.';
+        },
+      });
     } else {
-      console.log('Form is invalid');
-      this.signinForm.markAllAsTouched(); // Mark fields to show validation errors
+      this.signinForm.markAllAsTouched();
     }
   }
 
@@ -62,7 +60,6 @@ export class SigninPageComponent implements OnInit {
     this.passwordVisible = !this.passwordVisible;
   }
 
-  // Helper getters for template validation
   get email() {
     return this.signinForm.get('email');
   }

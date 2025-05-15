@@ -6,45 +6,53 @@ import { ProfilePageComponent } from './profile-page/profile-page.component';
 import { LoanApplicationPageComponent } from './loan-application-page/loan-application-page.component';
 import { ApplicationStatusPageComponent } from './application-status-page/application-status-page.component';
 import { AdminPortalPageComponent } from './admin-portal-page/admin-portal-page.component';
+import { AuthGuard } from './auth/auth.guard';
+import { AdminGuard } from './auth/admin.guard';
+import { NotAuthorizedPageComponent } from './not-authorized-page/not-authorized-page.component';
 
 export const routes: Routes = [
   {
-    path: '', // Default route
-    component: HomeComponent, // Example: your home page component
-    title: 'Home Page', // Optional: for setting the browser tab title
+    path: '',
+    component: HomeComponent,
+    title: 'Home Page',
   },
   {
-    path: 'signup', // The URL path for the signup page
-    component: SignupPageComponent, // The component to render for this path
-    title: 'Sign Up - MortgageEase', // Optional: for setting the browser tab title
+    path: 'signup',
+    component: SignupPageComponent,
+    title: 'Sign Up - MortgageEase',
   },
   {
-    path: 'signin', // The URL path for the signin page
-    component: SigninPageComponent, // The component to render for this path
+    path: 'signin',
+    component: SigninPageComponent,
     title: 'Sign In - MortgageEase',
   },
   {
     path: 'profile',
     component: ProfilePageComponent,
-    // canActivate: [authGuard], // <-- Protect this route
+    canActivate: [AuthGuard],
     title: 'My Profile - MortgageEase',
   },
   {
     path: 'loan-application',
     component: LoanApplicationPageComponent,
-    // canActivate: [authGuard], // <-- Protect this route
+    canActivate: [AuthGuard],
     title: 'Loan Application - MortgageEase',
   },
   {
-    path: 'application-status/:id', // Route with an 'id' parameter
+    path: 'application-status/:id',
     component: ApplicationStatusPageComponent,
-    // canActivate: [authGuard], // <-- Protect this route
-    title: 'Application Status - MortgageEase', // Title can be dynamic later
+    canActivate: [AuthGuard],
+    title: 'Application Status - MortgageEase',
   },
   {
     path: 'admin-portal',
     component: AdminPortalPageComponent,
-    // canActivate: [adminGuard], // <-- Protect this route
+    canActivate: [AdminGuard],
     title: 'Admin Portal - MortgageEase',
+  },
+  {
+    path: 'not-authorized', // URL for this page
+    component: NotAuthorizedPageComponent,
+    title: 'Access Denied - MortgageEase',
   },
 ];

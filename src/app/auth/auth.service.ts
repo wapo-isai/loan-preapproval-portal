@@ -6,11 +6,10 @@ import { HttpClient } from '@angular/common/http'; // Import HttpClient
 import { tap } from 'rxjs/operators'; // Import tap operator
 import { environment } from '../../environments/environment'; // For API URL
 
-// Assuming you have these DTOs defined in Angular
 export interface AuthResponse {
   token: string;
-  type?: string; // Usually "Bearer"
-  id: number; // Or string
+  type?: string;
+  id: number;
   email: string;
   firstName: string;
   roles: string[];
@@ -67,15 +66,10 @@ export class AuthService {
       );
   }
 
-  // Actual HTTP call for registration
   performRegistration(userInfo: SignUpRequest): Observable<any> {
     return this.http.post(`${environment.apiUrl}/auth/register`, userInfo);
-    // Decide if registration should auto-login. If so, it should return AuthResponse
-    // and call this.login() in a tap operator like performLogin.
-    // For now, it just returns the backend response (e.g., a success message).
   }
 
-  // Stores token and updates status
   login(token: string, userDetails?: any): void {
     localStorage.setItem('authToken', token);
     if (userDetails) {
@@ -98,17 +92,14 @@ export class AuthService {
     return this.loggedInStatus.value;
   }
 
-  // Renamed for clarity and consistency
   getCurrentUser(): any | null {
     return this.currentUserSubject.value;
   }
 
-  // Helper to get the token directly
   getAuthToken(): string | null {
     return localStorage.getItem('authToken');
   }
 
-  // Helper to check for roles
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
     return user && user.roles && user.roles.includes(role);

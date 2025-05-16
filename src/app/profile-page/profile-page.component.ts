@@ -6,6 +6,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import {
+  UpdateUserProfileRequest,
+  UserProfileData,
+  UserProfileService,
+} from '../user-profile.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -24,18 +30,21 @@ export class ProfilePageComponent {
     'Retired',
   ];
 
-  // To store selected file names for display
   proofOfIncomeFileName: string | null = null;
   creditReportFileName: string | null = null;
-
-  // To store the actual files
   private proofOfIncomeFile: File | null = null;
   private creditReportFile: File | null = null;
 
+  isLoading: boolean = false;
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
+  currentUserId: string | number | null = null;
+
   constructor(
-    private fb: FormBuilder // private userService: UserService, // Example
-  ) // private http: HttpClient // Example
-  {}
+    private fb: FormBuilder,
+    private userProfileService: UserProfileService, // Inject UserProfileService
+    private authService: AuthService // Inject AuthService
+  ) {}
 
   ngOnInit(): void {
     this.profileForm = this.fb.group({
@@ -43,7 +52,7 @@ export class ProfilePageComponent {
         fullName: ['', Validators.required],
         streetAddress: ['', Validators.required],
         city: ['', Validators.required],
-        state: ['', Validators.required], // Could add pattern/length validators
+        state: ['', Validators.required],
         zipCode: [
           '',
           [Validators.required, Validators.pattern(/^\d{5}(-\d{4})?$/)],
@@ -51,23 +60,59 @@ export class ProfilePageComponent {
       }),
       employmentInformation: this.fb.group({
         employmentStatus: ['', Validators.required],
-        employmentDetails: [''], // Optional based on status, or add conditional validation
+        employmentDetails: [''],
       }),
-      // File inputs are handled separately but can be part of the conceptual form
     });
 
-    // Example: Load existing profile data
-    // this.userService.getProfile().subscribe(data => {
-    //   this.profileForm.patchValue(data);
-    //   // Note: File inputs cannot be programmatically set for security reasons.
-    //   // You might display existing uploaded file names if available from backend.
-    // });
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser && currentUser.id) {
+      this.currentUserId = currentUser.id;
+      this.loadUserProfile(this.currentUserId!); // Load existing data
+    } else {
+      this.errorMessage =
+        'Could not identify user. Please try logging in again.';
+      console.error('User ID not found in AuthService for profile page.');
+    }
+  }
+
+  loadUserProfile(userId: string | number): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+    this.userProfileService.getCurrentUserProfile().subscribe({
+      // getCurrentUserProfile now gets ID internally
+      next: (data: UserProfileData) => {
+        // Map backend data to form structure
+        this.profileForm.patchValue({
+          personalInformation: {
+            fullName: data.fullName,
+            streetAddress: data.streetAddress,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zipCode,
+          },
+          employmentInformation: {
+            employmentStatus: data.employmentStatus,
+            employmentDetails: data.employmentDetails,
+          },
+        });
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading profile data', err);
+        this.errorMessage = `Failed to load profile: ${
+          err.message || 'Please try again later.'
+        }`;
+        this.isLoading = false;
+      },
+    });
   }
 
   onFileSelected(
     event: Event,
     documentType: 'proofOfIncome' | 'creditReport'
   ): void {
+    // ... (your existing file selection logic remains the same) ...
     const element = event.currentTarget as HTMLInputElement;
     let fileList: FileList | null = element.files;
 
@@ -81,7 +126,6 @@ export class ProfilePageComponent {
         this.creditReportFileName = file.name;
       }
     } else {
-      // Reset if no file is chosen or selection is cancelled
       if (documentType === 'proofOfIncome') {
         this.proofOfIncomeFile = null;
         this.proofOfIncomeFileName = null;
@@ -93,43 +137,71 @@ export class ProfilePageComponent {
   }
 
   onSubmit(): void {
+    this.successMessage = null;
+    this.errorMessage = null;
+
+    if (!this.currentUserId) {
+      this.errorMessage =
+        'Cannot save profile: User identity is missing. Please re-login.';
+      return;
+    }
+
     if (this.profileForm.valid) {
-      console.log('Profile Form Data:', this.profileForm.value);
-      console.log('Proof of Income File:', this.proofOfIncomeFile);
-      console.log('Credit Report File:', this.creditReportFile);
+      this.isLoading = true;
 
-      // **REAL IMPLEMENTATION for saving data and uploading files:**
-      // const formData = new FormData();
+      const personalInfo = this.profileForm.get('personalInformation')?.value;
+      const employmentInfo = this.profileForm.get(
+        'employmentInformation'
+      )?.value;
 
-      // // Append form data (excluding files initially if backend handles separately or nest)
-      // formData.append('profileData', JSON.stringify(this.profileForm.value));
+      // **IMPORTANT: Map to what your backend UpdateUserRequest DTO expects**
+      const updateRequestData: UpdateUserProfileRequest = {
+        fullName: personalInfo.fullName,
+        employmentStatus: employmentInfo.employmentStatus,
+        // If you expand UpdateUserRequest.java on the backend, add other fields here:
+        // streetAddress: personalInfo.streetAddress,
+        // city: personalInfo.city,
+        // state: personalInfo.state,
+        // zipCode: personalInfo.zipCode,
+        // employmentDetails: employmentInfo.employmentDetails,
+      };
 
-      // if (this.proofOfIncomeFile) {
-      //   formData.append('proofOfIncome', this.proofOfIncomeFile, this.proofOfIncomeFile.name);
-      // }
-      // if (this.creditReportFile) {
-      //   formData.append('creditReport', this.creditReportFile, this.creditReportFile.name);
-      // }
+      console.log('Submitting Profile Form Data:', updateRequestData);
+      // console.log('Proof of Income File:', this.proofOfIncomeFile); // Keep for when file upload is implemented
+      // console.log('Credit Report File:', this.creditReportFile);
 
-      // // Example: Post to a backend service
-      // this.http.post('/api/user/profile', formData).subscribe({
-      //   next: (response) => console.log('Profile saved successfully', response),
-      //   error: (err) => console.error('Error saving profile', err)
-      // });
+      this.userProfileService
+        .updateUserProfile(this.currentUserId, updateRequestData)
+        .subscribe({
+          next: (response) => {
+            console.log('Profile saved successfully', response);
+            this.successMessage = 'Profile updated successfully!';
+            this.isLoading = false;
+            // Optionally, reload profile data or update form with response if backend returns updated object
+            // this.loadUserProfile(this.currentUserId!);
+          },
+          error: (err) => {
+            console.error('Error saving profile', err);
+            this.errorMessage = `Failed to update profile: ${
+              err.message || 'Please try again.'
+            }`;
+            this.isLoading = false;
+          },
+        });
 
-      // Or use a dedicated user service
-      // this.userService.saveProfile(this.profileForm.value, this.proofOfIncomeFile, this.creditReportFile)
-      // .subscribe(...)
-
-      alert('Profile Saved (Simulated)! Check console for data.');
+      // File upload logic will be separate and likely happen after text data is saved or concurrently.
+      // For now, we are not submitting files.
+      // if (this.proofOfIncomeFile) { /* Call service to upload this.proofOfIncomeFile */ }
+      // if (this.creditReportFile) { /* Call service to upload this.creditReportFile */ }
     } else {
       console.log('Profile form is invalid');
       this.profileForm.markAllAsTouched(); // Show validation errors
-      alert('Please correct the errors in the form.');
+      this.errorMessage =
+        'Please correct the errors in the form before submitting.';
     }
   }
 
-  // Helper getters for easy template access
+  // Helper getters
   get personalInfo() {
     return this.profileForm.get('personalInformation') as FormGroup;
   }

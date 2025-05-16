@@ -8,17 +8,16 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../auth/auth.service'; // Import AuthService
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-signup-page',
   standalone: true, // Assuming standalone
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './signup-page.component.html',
-  styleUrls: ['./signup-page.component.css'], // Corrected 'styleUrl' to 'styleUrls'
+  styleUrls: ['./signup-page.component.css'],
 })
 export class SignupPageComponent implements OnInit {
-  // Implemented OnInit
   signupForm!: FormGroup;
   passwordVisible: boolean = false;
   registrationError: string | null = null;
@@ -26,7 +25,7 @@ export class SignupPageComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService, // Inject AuthService
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -46,19 +45,10 @@ export class SignupPageComponent implements OnInit {
     if (this.signupForm.valid) {
       this.authService.performRegistration(this.signupForm.value).subscribe({
         next: (response) => {
-          // Assuming backend returns a success message or user object
           console.log('Registration successful', response);
           this.registrationSuccess =
             'Registration successful! Please proceed to sign in.';
-          // Option 1: Navigate to login page
-          // this.router.navigate(['/signin']);
-
-          // Option 2: If backend auto-logs in and returns AuthResponse
-          // if (response && response.token) {
-          //   this.authService.login(response.token, { id: response.id, /* other user details */ });
-          // } else {
-          //   this.router.navigate(['/signin']);
-          // }
+          this.router.navigate(['/signin']);
         },
         error: (err) => {
           console.error('Registration failed', err);

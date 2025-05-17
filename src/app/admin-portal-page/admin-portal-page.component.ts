@@ -9,6 +9,7 @@ import {
   AdminApplicationDetail,
 } from '../models/application.model';
 import { CommonModule } from '@angular/common';
+import { AdminService } from '../admin.service';
 // import { AdminService } from '../admin.service'; // Example service
 
 @Component({
@@ -25,100 +26,15 @@ export class AdminPortalPageComponent {
   isLoadingDetails: boolean = false;
   adminNotesForm!: FormGroup;
 
-  // For demo status changes
-  readonly appStatuses = ApplicationStatus;
+  readonly appStatuses = ApplicationStatus; // For template access to enum
 
-  // Mock data - replace with service calls
-  private allApplicationDetails: AdminApplicationDetail[] = [
-    {
-      id: 'APP12345',
-      loanAmount: 250000,
-      submissionDate: new Date('2025-05-01T10:30:00Z'),
-      currentStatus: ApplicationStatus.SUBMITTED,
-      applicantName: 'John Doe',
-      homePrice: 300000,
-      annualIncome: 85000,
-      totalDebt: 20000,
-      creditScore: 720,
-      statusHistory: [
-        {
-          status: ApplicationStatus.SUBMITTED,
-          date: new Date('2025-05-01T10:30:00Z'),
-          description: 'Application submitted by customer',
-          actor: 'customer',
-          icon: 'fas fa-file-alt',
-        },
-      ],
-      adminNotes: '',
-    },
-    {
-      id: 'APP12346',
-      loanAmount: 180000,
-      submissionDate: new Date('2025-05-02T14:00:00Z'),
-      currentStatus: ApplicationStatus.UNDER_REVIEW,
-      applicantName: 'Jane Smith',
-      homePrice: 220000,
-      annualIncome: 65000,
-      totalDebt: 15000,
-      creditScore: 680,
-      statusHistory: [
-        {
-          status: ApplicationStatus.UNDER_REVIEW,
-          date: new Date('2025-05-03T09:00:00Z'),
-          description: 'Automatically moved to Under Review queue.',
-          actor: 'system',
-          icon: 'fas fa-cogs',
-        },
-        {
-          status: ApplicationStatus.SUBMITTED,
-          date: new Date('2025-05-02T14:00:00Z'),
-          description: 'Application submitted by customer',
-          actor: 'customer',
-          icon: 'fas fa-file-alt',
-        },
-      ],
-      adminNotes: 'Applicant has a short credit history.',
-    },
-    {
-      id: 'APP12347',
-      loanAmount: 350000,
-      submissionDate: new Date('2025-04-28T11:15:00Z'),
-      currentStatus: ApplicationStatus.APPROVED,
-      applicantName: 'Alice Brown',
-      homePrice: 450000,
-      annualIncome: 120000,
-      totalDebt: 25000,
-      creditScore: 780,
-      statusHistory: [
-        {
-          status: ApplicationStatus.APPROVED,
-          date: new Date('2025-05-02T16:00:00Z'),
-          description: 'Application approved by Admin X.',
-          actor: 'admin',
-          icon: 'fas fa-check-circle',
-        },
-        {
-          status: ApplicationStatus.UNDER_REVIEW,
-          date: new Date('2025-04-29T10:00:00Z'),
-          description: 'Reviewed by loan officer.',
-          actor: 'admin',
-          icon: 'fas fa-user-tie',
-        },
-        {
-          status: ApplicationStatus.SUBMITTED,
-          date: new Date('2025-04-28T11:15:00Z'),
-          description: 'Application submitted by customer',
-          actor: 'customer',
-          icon: 'fas fa-file-alt',
-        },
-      ],
-      adminNotes: 'Strong candidate. Approved.',
-    },
-  ];
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private router: Router // private adminService: AdminService // Example
+    private router: Router,
+    private adminService: AdminService // Inject AdminService
   ) {}
 
   ngOnInit(): void {
@@ -130,61 +46,55 @@ export class AdminPortalPageComponent {
 
   loadApplicationsList(): void {
     this.isLoadingList = true;
-    // Simulate API call
-    // this.adminService.getApplications().subscribe(data => { ... })
-    setTimeout(() => {
-      this.applications = this.allApplicationDetails.map((app) => ({
-        id: app.id,
-        loanAmount: app.loanAmount,
-        submissionDate: app.submissionDate,
-        currentStatus: app.currentStatus,
-        applicantName: app.applicantName,
-      }));
-      this.isLoadingList = false;
-    }, 500);
+    this.errorMessage = null;
+    this.adminService.getAllApplications().subscribe({
+      next: (data) => {
+        this.applications = data;
+        this.isLoadingList = false;
+      },
+      error: (err) => {
+        console.error('Error loading applications list', err);
+        this.errorMessage = `Failed to load applications: ${err.message}`;
+        this.isLoadingList = false;
+      },
+    });
   }
 
   viewApplicationDetails(applicationId: string): void {
     this.isLoadingDetails = true;
-    this.selectedApplication = null; // Clear previous
-    // Simulate API call for details
-    // this.adminService.getApplicationDetails(applicationId).subscribe(data => { ... })
-    setTimeout(() => {
-      const detail = this.allApplicationDetails.find(
-        (app) => app.id === applicationId
-      );
-      if (detail) {
-        this.selectedApplication = { ...detail }; // Create a copy
-        // Calculate LTV and DTI
-        if (this.selectedApplication.homePrice > 0) {
-          this.selectedApplication.ltvRatio =
-            (this.selectedApplication.loanAmount /
-              this.selectedApplication.homePrice) *
-            100;
-        }
-        if (this.selectedApplication.annualIncome > 0) {
-          // Assuming totalDebt is monthly, convert annual income to monthly
-          const monthlyIncome = this.selectedApplication.annualIncome / 12;
-          if (monthlyIncome > 0) {
-            this.selectedApplication.dtiRatio =
-              (this.selectedApplication.totalDebt / monthlyIncome) * 100;
-          }
-        }
+    this.selectedApplication = null;
+    this.errorMessage = null;
+    this.successMessage = null;
+    this.adminNotesForm.reset({ notes: '' });
+
+    this.adminService.getApplicationDetails(applicationId).subscribe({
+      next: (detail) => {
+        this.selectedApplication = detail;
+        // Backend should provide notes, or we set from local cache if any was being edited
         this.adminNotesForm.patchValue({
           notes: this.selectedApplication.adminNotes || '',
         });
-        // Sort history if needed
-        this.selectedApplication.statusHistory.sort(
-          (a, b) => b.date.getTime() - a.date.getTime()
+        if (this.selectedApplication.statusHistory) {
+          this.selectedApplication.statusHistory.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+        }
+        this.isLoadingDetails = false;
+      },
+      error: (err) => {
+        console.error(
+          `Error loading details for application ${applicationId}`,
+          err
         );
-      }
-      this.isLoadingDetails = false;
-    }, 300);
+        this.errorMessage = `Failed to load application details: ${err.message}`;
+        this.isLoadingDetails = false;
+      },
+    });
   }
 
-  getStatusClass(status: ApplicationStatus): string {
-    // This can be refactored into a shared utility or pipe
-    switch (status) {
+  getStatusClass(status: ApplicationStatus | string): string {
+    const statusString = status as string; // Treat as string for broader matching
+    switch (statusString) {
       case ApplicationStatus.SUBMITTED:
         return 'status-submitted';
       case ApplicationStatus.UNDER_REVIEW:
@@ -195,81 +105,110 @@ export class AdminPortalPageComponent {
         return 'status-approved';
       case ApplicationStatus.REJECTED:
         return 'status-rejected';
+      case ApplicationStatus.ADDITIONAL_INFO_REQUIRED:
+        return 'status-info-required';
       default:
         return 'status-default';
     }
   }
 
-  getTimelineIcon(status: ApplicationStatus): string {
-    switch (status) {
+  getTimelineIcon(status: ApplicationStatus | string): string {
+    const statusString = status as string;
+    switch (statusString) {
       case ApplicationStatus.SUBMITTED:
         return 'fas fa-file-alt';
       case ApplicationStatus.UNDER_REVIEW:
-        return 'fas fa-user-tie'; // Or fa-search
+        return 'fas fa-user-tie';
       case ApplicationStatus.AWAITING_REVIEW:
-        return 'fas fa-clock'; // Or fa-hourglass-half
+        return 'fas fa-clock';
       case ApplicationStatus.APPROVED:
         return 'fas fa-check-circle';
       case ApplicationStatus.REJECTED:
         return 'fas fa-times-circle';
+      case ApplicationStatus.ADDITIONAL_INFO_REQUIRED:
+        return 'fas fa-exclamation-circle';
       default:
         return 'fas fa-info-circle';
     }
   }
 
   saveAdminNotes(): void {
+    this.clearMessages();
     if (this.selectedApplication && this.adminNotesForm.valid) {
-      this.selectedApplication.adminNotes = this.adminNotesForm.value.notes;
-      console.log(
-        `Saving notes for ${this.selectedApplication.id}:`,
-        this.selectedApplication.adminNotes
-      );
-      // **REAL IMPLEMENTATION:**
-      // this.adminService.updateAdminNotes(this.selectedApplication.id, this.selectedApplication.adminNotes)
-      //   .subscribe(...);
-      alert('Notes saved (simulated)!');
+      const notes = this.adminNotesForm.value.notes;
+      this.isLoadingDetails = true; // Indicate loading
+
+      this.adminService
+        .saveAdminNotes(this.selectedApplication.id, notes)
+        .subscribe({
+          next: (updatedApplication) => {
+            this.selectedApplication = updatedApplication; // Update with response
+            this.adminNotesForm.patchValue({
+              notes: updatedApplication.adminNotes || '',
+            });
+            this.adminNotesForm.markAsPristine();
+            this.successMessage = 'Admin notes updated successfully!';
+            this.isLoadingDetails = false;
+
+            // Update the item in the main list if notes are part of summary (unlikely)
+            const index = this.applications.findIndex(
+              (app) => app.id === this.selectedApplication!.id
+            );
+            if (index > -1) {
+              // If you have a field in ApplicationListItem for notes count or snippet, update it here
+            }
+          },
+          error: (err) => {
+            this.errorMessage = `Error saving notes: ${err.message}`;
+            this.isLoadingDetails = false;
+          },
+        });
     }
   }
 
   updateApplicationStatus(newStatus: ApplicationStatus): void {
+    this.clearMessages();
     if (this.selectedApplication) {
-      const oldStatus = this.selectedApplication.currentStatus;
-      this.selectedApplication.currentStatus = newStatus;
+      const applicationId = this.selectedApplication.id;
+      this.isLoadingDetails = true;
 
-      // Add to status history
-      this.selectedApplication.statusHistory.unshift({
-        status: newStatus,
-        date: new Date(),
-        description: `Status changed from ${oldStatus} to ${newStatus} by admin.`,
-        actor: 'admin',
-        icon: this.getTimelineIcon(newStatus),
-      });
-      this.selectedApplication.statusHistory.sort(
-        (a, b) => b.date.getTime() - a.date.getTime()
-      );
+      this.adminService
+        .updateApplicationStatus(applicationId, newStatus)
+        .subscribe({
+          // Pass enum directly, service will handle string
+          next: (updatedApplicationDetail) => {
+            this.selectedApplication = updatedApplicationDetail; // This now contains the backend-updated timeline
+            // Update the list item's status
+            const index = this.applications.findIndex(
+              (app) => app.id === applicationId
+            );
+            if (index > -1) {
+              this.applications[index].currentStatus =
+                updatedApplicationDetail.currentStatus;
+            }
+            // Re-patch notes form, as backend might have its own notes logic or return the saved notes
+            this.adminNotesForm.patchValue({
+              notes: this.selectedApplication.adminNotes || '',
+            });
+            this.adminNotesForm.markAsPristine();
 
-      // Update the main list item's status as well for immediate UI feedback
-      const listItem = this.applications.find(
-        (app) => app.id === this.selectedApplication!.id
-      );
-      if (listItem) {
-        listItem.currentStatus = newStatus;
-      }
-
-      console.log(
-        `Application ${this.selectedApplication.id} status changed to ${newStatus}`
-      );
-      this.saveAdminNotes(); // Optionally save notes when status changes
-
-      // **REAL IMPLEMENTATION:**
-      // this.adminService.updateApplicationStatus(this.selectedApplication.id, newStatus, this.selectedApplication.adminNotes)
-      //   .subscribe(...);
-      alert(`Application status changed to ${newStatus} (simulated)!`);
+            this.successMessage = `Application ${applicationId} status successfully changed to ${newStatus}.`;
+            this.isLoadingDetails = false;
+          },
+          error: (err) => {
+            this.errorMessage = `Failed to update status: ${err.message}`;
+            this.isLoadingDetails = false;
+          },
+        });
     }
   }
 
+  private clearMessages() {
+    this.successMessage = null;
+    this.errorMessage = null;
+  }
+
   goBackToProfile(): void {
-    // Assuming '/profile' is the user's profile page route
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/profile']); // Or wherever admins should go
   }
 }

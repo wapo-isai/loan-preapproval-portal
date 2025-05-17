@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../environments/environment';
-import { AuthService } from './auth/auth.service'; // To get user ID
+import { AuthService } from './auth/auth.service';
 import {
   BackendLoanApplication,
   NewLoanApplicationPayload,
@@ -13,54 +13,83 @@ import {
   providedIn: 'root',
 })
 export class LoanApplicationService {
-  private apiUrl = `${environment.apiUrl}/api/applications`; // Gateway endpoint
+  private apiUrl = `${environment.apiUrl}/api/applications`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
   private getCurrentUserId(): string | null {
     const currentUser = this.authService.getCurrentUser();
-    return currentUser ? currentUser.id : null; // Assuming 'id' is available on your currentUser object
+    return currentUser ? currentUser.id : null;
   }
 
-  submitOrSaveApplication(
-    payload: NewLoanApplicationPayload
-  ): Observable<BackendLoanApplication> {
-    // The backend POST /api/applications seems to handle both new and potentially draft submissions
-    // if the payload contains the status.
+  submitOrSaveApplication(payload: any): Observable<BackendLoanApplication> {
     return this.http
       .post<BackendLoanApplication>(this.apiUrl, payload)
       .pipe(catchError(this.handleError));
   }
 
-  // Method to get applications for the current user (could be used to find drafts)
   getUserApplications(): Observable<BackendLoanApplication[]> {
     const userId = this.getCurrentUserId();
     if (!userId) {
+      // Return an empty array or an error if user ID is crucial before calling backend
+      // For a guard, it might be better to let AuthGuard handle unauthenticated users first.
+      // If AuthGuard ensures user is logged in, userId should exist.
       return throwError(
-        () => new Error('User not authenticated or user ID not found.')
+        () =>
+          new Error(
+            'User not authenticated or user ID not found for fetching applications.'
+          )
       );
     }
     return this.http
       .get<BackendLoanApplication[]>(`${this.apiUrl}/user/${userId}`)
-      .pipe(catchError(this.handleError));
+      .pipe(
+        map((apps) =>
+          apps.map((app) => ({
+            // Ensure dates are converted
+            ...app,
+            submittedAt: app.submittedAt
+              ? new Date(app.submittedAt)
+              : undefined,
+            updatedAt: app.updatedAt ? new Date(app.updatedAt) : undefined,
+          }))
+        ),
+        catchError(this.handleError)
+      );
   }
 
-  // Method to get a specific application by its ID
   getApplicationById(
     applicationId: string
   ): Observable<BackendLoanApplication> {
     return this.http
       .get<BackendLoanApplication>(`${this.apiUrl}/${applicationId}`)
-      .pipe(catchError(this.handleError));
+      .pipe(
+        map((app) => ({
+          // Ensure dates are converted
+          ...app,
+          submittedAt: app.submittedAt ? new Date(app.submittedAt) : undefined,
+          updatedAt: app.updatedAt ? new Date(app.updatedAt) : undefined,
+          timeline: app.timeline
+            ? app.timeline.map((event) => ({
+                ...event,
+                date: event.date
+                  ? new Date(event.date as unknown as string)
+                  : new Date(), // Defensive
+              }))
+            : [],
+        })),
+        catchError(this.handleError)
+      );
   }
 
   private handleError(error: any) {
     console.error('API Error in LoanApplicationService:', error);
-    let errorMessage = 'An unknown error occurred with the loan application!';
+    let errorMessage =
+      'An unknown error occurred with the loan application service!';
     if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
+      errorMessage = `Client-side error: ${error.error.message}`;
     } else if (error.status) {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${
+      errorMessage = `Server-side error Code: ${error.status}\nMessage: ${
         error.error?.message || error.message || error.statusText
       }`;
     }

@@ -9,6 +9,7 @@ import { AdminPortalPageComponent } from './admin-portal-page/admin-portal-page.
 import { AuthGuard } from './auth/auth.guard';
 import { AdminGuard } from './auth/admin.guard';
 import { NotAuthorizedPageComponent } from './not-authorized-page/not-authorized-page.component';
+import { loanApplicationGuard } from './auth/loan-application.guard';
 
 export const routes: Routes = [
   {
@@ -35,7 +36,7 @@ export const routes: Routes = [
   {
     path: 'loan-application',
     component: LoanApplicationPageComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, loanApplicationGuard],
     title: 'Loan Application - MortgageEase',
   },
   {

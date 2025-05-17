@@ -139,9 +139,61 @@
               <span class="label">Credit Score:</span>
               <span class="value">{{ selectedApplication.creditScore }}</span>
             </div>
+            <div class="detail-item">
+              <span class="label">Employment Status:</span>
+              <span class="value">{{
+                selectedApplication.employmentStatus || "N/A"
+              }}</span>
+            </div>
           </div>
         </div>
 
+        <section class="evaluation-outcome-section">
+          <h4>Automated Evaluation Outcome</h4>
+          <div
+            class="detail-item evaluation-status"
+            [class.eligible]="selectedApplication.eligible === true"
+            [class.not-eligible]="selectedApplication.eligible === false"
+          >
+            <span class="label">Eligibility:</span>
+            <span class="value">
+              <i
+                class="fas"
+                [ngClass]="
+                  selectedApplication.eligible
+                    ? 'fa-check-circle'
+                    : 'fa-times-circle'
+                "
+              ></i>
+              {{
+                selectedApplication.eligible
+                  ? "Eligible"
+                  : selectedApplication.eligible === false
+                  ? "Not Eligible"
+                  : "N/A"
+              }}
+            </span>
+          </div>
+          <div
+            class="detail-item evaluation-reason"
+            *ngIf="selectedApplication.evaluationReason"
+          >
+            <span class="label">Reason / Notes:</span>
+            <span class="value reason-text">{{
+              selectedApplication.evaluationReason
+            }}</span>
+          </div>
+          <div
+            class="detail-item evaluation-reason"
+            *ngIf="
+              !selectedApplication.evaluationReason &&
+              selectedApplication.eligible !== undefined
+            "
+          >
+            <span class="label">Reason / Notes:</span>
+            <span class="value reason-text">No specific reason provided.</span>
+          </div>
+        </section>
         <h4>Status History</h4>
         <ul class="timeline-list admin-timeline">
           <li

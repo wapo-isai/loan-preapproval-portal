@@ -271,3 +271,49 @@
     flex-grow: 1; /* Make buttons take more space */
   }
 }
+
+.evaluation-outcome-section {
+  margin-top: 20px; /* Space above this section */
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef; /* Separator line */
+}
+
+.evaluation-outcome-section h4 {
+  /* Already styled generally, but can be specific */
+  margin-bottom: 15px;
+}
+
+.evaluation-status .value {
+  font-weight: bold;
+  display: inline-flex; /* Align icon and text */
+  align-items: center;
+}
+
+.evaluation-status .value i {
+  margin-right: 8px;
+  font-size: 1.1em; /* Slightly larger icon */
+}
+
+.evaluation-status.eligible .value {
+  color: #28a745; /* Green for eligible */
+}
+
+.evaluation-status.not-eligible .value {
+  color: #dc3545; /* Red for not eligible */
+}
+
+.evaluation-reason .label {
+  display: block; /* Make label take full width above reason */
+  margin-bottom: 4px;
+}
+
+.evaluation-reason .reason-text {
+  display: block;
+  padding: 8px;
+  background-color: #f8f9fa; /* Light background for the reason block */
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  color: #495057;
+  white-space: pre-wrap; /* Preserve formatting of the reason text if it has newlines */
+  font-size: 0.9em;
+}

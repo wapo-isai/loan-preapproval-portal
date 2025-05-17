@@ -1,12 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, map } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
+
 import {
   ApplicationStatus,
   LoanApplication,
   TimelineEvent,
 } from '../models/application.model';
-import { Subject, takeUntil, map } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
+import { LoanApplicationService } from '../loan-application.service';
+import { BackendLoanApplication } from '../models/loan-application.model';
 
 @Component({
   selector: 'app-application-status-page',
@@ -15,20 +20,18 @@ import { CommonModule } from '@angular/common';
   templateUrl: './application-status-page.component.html',
   styleUrl: './application-status-page.component.css',
 })
-export class ApplicationStatusPageComponent {
+export class ApplicationStatusPageComponent implements OnInit, OnDestroy {
   application: LoanApplication | null = null;
   applicationId: string | null = null;
   isLoading: boolean = true;
   error: string | null = null;
 
-  // For demo purposes
   readonly demoStatuses = ApplicationStatus;
-
   private unsubscribe$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router // private applicationService: ApplicationService // Example
+    private applicationService: LoanApplicationService // Inject the service
   ) {}
 
   ngOnInit(): void {
@@ -42,10 +45,9 @@ export class ApplicationStatusPageComponent {
           this.applicationId = id;
           this.loadApplicationData(id);
         } else {
-          this.error = 'Application ID not found.';
+          this.error = 'Application ID not found in route.';
           this.isLoading = false;
-          // Optionally navigate away or show an error component
-          // this.router.navigate(['/some-error-page']);
+          // this.router.navigate(['/some-error-page-or-dashboard']);
         }
       });
   }
@@ -53,76 +55,95 @@ export class ApplicationStatusPageComponent {
   loadApplicationData(id: string): void {
     this.isLoading = true;
     this.error = null;
+    this.application = null; // Reset previous application
 
-    // ** SIMULATED DATA FETCH **
-    // Replace with actual service call: this.applicationService.getApplicationById(id).subscribe(...)
-    setTimeout(() => {
-      // Mock data - In a real app, this would come from a service
-      const mockApplications: { [key: string]: LoanApplication } = {
-        APP12345: {
-          id: 'APP12345',
-          submittedDate: new Date('2024-05-08T06:30:00Z'),
-          currentStatus: ApplicationStatus.UNDER_REVIEW,
-          progress: 50,
-          loanAmount: 250000,
-          homePrice: 300000,
-          timeline: [
-            {
-              status: ApplicationStatus.UNDER_REVIEW,
-              date: new Date('2024-05-09T10:15:00Z'),
-              description: 'Application is being reviewed by our team.',
-              icon: 'fas fa-clock',
-            },
-            {
-              status: ApplicationStatus.SUBMITTED,
-              date: new Date('2024-05-08T06:30:00Z'),
-              description: 'Application submitted successfully.',
-              icon: 'fas fa-file-alt',
-            },
-          ],
+    this.applicationService
+      .getApplicationById(id)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (backendApp: BackendLoanApplication) => {
+          // Map backend data to the structure your component expects
+          this.application = this.mapBackendToComponentData(backendApp);
+          // Sort timeline by date descending if not already sorted by backend
+          if (this.application && this.application.timeline) {
+            this.application.timeline.sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+          }
+          this.isLoading = false;
         },
-        APP67890: {
-          id: 'APP67890',
-          submittedDate: new Date('2024-05-07T09:00:00Z'),
-          currentStatus: ApplicationStatus.APPROVED,
-          progress: 100,
-          loanAmount: 150000,
-          homePrice: 220000,
-          timeline: [
-            {
-              status: ApplicationStatus.APPROVED,
-              date: new Date('2024-05-10T14:30:00Z'),
-              description: 'Congratulations! Your loan has been approved.',
-              icon: 'fas fa-check-circle',
-            },
-            {
-              status: ApplicationStatus.UNDER_REVIEW,
-              date: new Date('2024-05-08T11:00:00Z'),
-              description: 'Application review in progress.',
-              icon: 'fas fa-clock',
-            },
-            {
-              status: ApplicationStatus.SUBMITTED,
-              date: new Date('2024-05-07T09:00:00Z'),
-              description: 'Application submitted.',
-              icon: 'fas fa-file-alt',
-            },
-          ],
+        error: (err) => {
+          console.error('Failed to load application data', err);
+          this.error = `Failed to load application details: ${
+            err.message || 'Please try again later.'
+          }`;
+          this.isLoading = false;
         },
-      };
+      });
+  }
 
-      const foundApplication = mockApplications[id];
-      if (foundApplication) {
-        this.application = { ...foundApplication }; // Create a copy to avoid direct mutation for demo
-        // Sort timeline by date descending
-        this.application.timeline.sort(
-          (a, b) => b.date.getTime() - a.date.getTime()
-        );
-      } else {
-        this.error = `Application with ID ${id} not found.`;
-      }
-      this.isLoading = false;
-    }, 1000); // Simulate network delay
+  private mapBackendToComponentData(
+    backendApp: BackendLoanApplication
+  ): LoanApplication {
+    // Convert string status from backend to ApplicationStatus enum
+    // This requires your ApplicationStatus enum to have string values matching backend
+    let currentStatusEnum: ApplicationStatus;
+    switch (backendApp.status?.toLowerCase()) {
+      case 'submitted':
+        currentStatusEnum = ApplicationStatus.SUBMITTED;
+        break;
+      case 'under review':
+        currentStatusEnum = ApplicationStatus.UNDER_REVIEW;
+        break;
+      case 'additional info required':
+        currentStatusEnum = ApplicationStatus.ADDITIONAL_INFO_REQUIRED;
+        break;
+      case 'approved':
+        currentStatusEnum = ApplicationStatus.APPROVED;
+        break;
+      case 'rejected':
+        currentStatusEnum = ApplicationStatus.REJECTED;
+        break;
+      default:
+        currentStatusEnum = ApplicationStatus.SUBMITTED; // Or some default/unknown status
+    }
+
+    // Calculate progress (example logic, adjust as needed)
+    let progress = 0;
+    switch (currentStatusEnum) {
+      case ApplicationStatus.SUBMITTED:
+        progress = 10;
+        break;
+      case ApplicationStatus.UNDER_REVIEW:
+        progress = 50;
+        break;
+      case ApplicationStatus.ADDITIONAL_INFO_REQUIRED:
+        progress = 65;
+        break;
+      case ApplicationStatus.APPROVED:
+        progress = 100;
+        break;
+      case ApplicationStatus.REJECTED:
+        progress = 100;
+        break; // Or 0
+    }
+
+    return {
+      id: backendApp.id || 'N/A',
+      submittedDate: backendApp.submittedAt
+        ? new Date(backendApp.submittedAt)
+        : new Date(), // Ensure it's a Date object
+      currentStatus: currentStatusEnum,
+      progress: progress,
+      loanAmount: backendApp.loanAmount,
+      homePrice: backendApp.homePrice,
+      timeline: backendApp.timeline
+        ? backendApp.timeline.map((event) => ({
+            ...event,
+            date: new Date(event.date), // Ensure timeline event dates are Date objects
+          }))
+        : [],
+    };
   }
 
   getStatusClass(status: ApplicationStatus): string {
@@ -142,9 +163,13 @@ export class ApplicationStatusPageComponent {
     }
   }
 
-  getTimelineIcon(status: ApplicationStatus): string {
-    // This could be stored in the TimelineEvent itself, or derived
-    switch (status) {
+  getTimelineIcon(status: ApplicationStatus | string): string {
+    // Handle potential string status from timeline events if not pre-mapped
+    const statusEnum =
+      typeof status === 'string'
+        ? (ApplicationStatus as any)[status.toUpperCase().replace(/ /g, '_')]
+        : status;
+    switch (statusEnum) {
       case ApplicationStatus.SUBMITTED:
         return 'fas fa-file-alt';
       case ApplicationStatus.UNDER_REVIEW:
@@ -160,7 +185,7 @@ export class ApplicationStatusPageComponent {
     }
   }
 
-  // --- Demo Controls ---
+  // --- Demo Controls (remain client-side for now) ---
   changeDemoStatus(newStatus: ApplicationStatus): void {
     if (this.application) {
       this.application.currentStatus = newStatus;
@@ -180,26 +205,24 @@ export class ApplicationStatusPageComponent {
           break;
         case ApplicationStatus.REJECTED:
           this.application.progress = 100;
-          break; // Or 0 if it means end of process
+          break;
         default:
           this.application.progress = 0;
       }
 
-      // Add to timeline (for demo)
       const newTimelineEvent: TimelineEvent = {
         status: newStatus,
-        date: new Date(), // Current time
-        description: `Status manually changed to ${newStatus}.`,
+        date: new Date(),
+        description: `Status manually changed to ${newStatus}. (Demo)`,
         icon: this.getTimelineIcon(newStatus),
       };
-      this.application.timeline.unshift(newTimelineEvent); // Add to the beginning
+      this.application.timeline.unshift(newTimelineEvent);
       this.application.timeline.sort(
-        (a, b) => b.date.getTime() - a.date.getTime()
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-
-      // In a real app, you'd call a service to update the status on the backend.
-      // this.applicationService.updateStatus(this.application.id, newStatus).subscribe(...)
       console.log(`Demo: Status changed to ${newStatus}`);
+      // In a real app, you would call a service to update status on backend, then reload or patch local data.
+      // e.g., this.applicationService.updateStatus(this.application.id, newStatus).subscribe(() => this.loadApplicationData(this.applicationId!));
     }
   }
 

@@ -12,6 +12,11 @@ import {
   UserProfileService,
 } from '../user-profile.service';
 import { AuthService } from '../auth/auth.service';
+import {
+  DocumentMetadata,
+  UserDocumentResponse,
+} from '../models/document.model';
+import { DocumentService } from '../document.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -30,20 +35,33 @@ export class ProfilePageComponent {
     'Retired',
   ];
 
-  proofOfIncomeFileName: string | null = null;
-  creditReportFileName: string | null = null;
-  private proofOfIncomeFile: File | null = null;
-  private creditReportFile: File | null = null;
-
-  isLoading: boolean = false;
-  successMessage: string | null = null;
-  errorMessage: string | null = null;
+  // For text profile data
+  isLoadingProfile: boolean = false;
+  profileSuccessMessage: string | null = null;
+  profileErrorMessage: string | null = null;
   currentUserId: string | number | null = null;
+
+  // For document uploads and display
+  userDocuments: UserDocumentResponse[] = [];
+  isDocumentsLoading: boolean = false;
+  documentsError: string | null = null;
+
+  proofOfIncomeFile: File | null = null;
+  proofOfIncomeFileName: string | null = null;
+  proofOfIncomeUploadProgress: number | null = null;
+  proofOfIncomeUploadError: string | null = null;
+
+  // For "Credit Report"
+  creditReportFile: File | null = null;
+  creditReportFileName: string | null = null;
+  creditReportUploadProgress: number | null = null;
+  creditReportUploadError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private userProfileService: UserProfileService, // Inject UserProfileService
-    private authService: AuthService // Inject AuthService
+    private authService: AuthService,
+    private documentService: DocumentService
   ) {}
 
   ngOnInit(): void {
@@ -67,22 +85,20 @@ export class ProfilePageComponent {
     const currentUser = this.authService.getCurrentUser();
     if (currentUser && currentUser.id) {
       this.currentUserId = currentUser.id;
-      this.loadUserProfile(this.currentUserId!); // Load existing data
+      this.loadUserProfile();
+      this.loadUserDocuments(); // Load documents on init
     } else {
-      this.errorMessage =
+      this.profileErrorMessage =
         'Could not identify user. Please try logging in again.';
       console.error('User ID not found in AuthService for profile page.');
     }
   }
 
-  loadUserProfile(userId: string | number): void {
-    this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
+  loadUserProfile(): void {
+    if (!this.currentUserId) return;
+    this.isLoadingProfile = true;
     this.userProfileService.getCurrentUserProfile().subscribe({
-      // getCurrentUserProfile now gets ID internally
       next: (data: UserProfileData) => {
-        // Map backend data to form structure
         this.profileForm.patchValue({
           personalInformation: {
             fullName: data.fullName,
@@ -96,14 +112,26 @@ export class ProfilePageComponent {
             employmentDetails: data.employmentDetails,
           },
         });
-        this.isLoading = false;
+        this.isLoadingProfile = false;
       },
       error: (err) => {
-        console.error('Error loading profile data', err);
-        this.errorMessage = `Failed to load profile: ${
-          err.message || 'Please try again later.'
-        }`;
-        this.isLoading = false;
+        this.profileErrorMessage = `Failed to load profile: ${err.message}`;
+        this.isLoadingProfile = false;
+      },
+    });
+  }
+
+  loadUserDocuments(): void {
+    this.isDocumentsLoading = true;
+    this.documentsError = null;
+    this.documentService.getUserDocuments().subscribe({
+      next: (docs) => {
+        this.userDocuments = docs;
+        this.isDocumentsLoading = false;
+      },
+      error: (err) => {
+        this.documentsError = `Failed to load documents: ${err.message}`;
+        this.isDocumentsLoading = false;
       },
     });
   }
@@ -112,96 +140,130 @@ export class ProfilePageComponent {
     event: Event,
     documentType: 'proofOfIncome' | 'creditReport'
   ): void {
-    // ... (your existing file selection logic remains the same) ...
     const element = event.currentTarget as HTMLInputElement;
-    let fileList: FileList | null = element.files;
+    const fileList: FileList | null = element.files;
 
     if (fileList && fileList.length > 0) {
       const file = fileList[0];
       if (documentType === 'proofOfIncome') {
         this.proofOfIncomeFile = file;
         this.proofOfIncomeFileName = file.name;
+        this.proofOfIncomeUploadError = null; // Clear previous error
+        this.proofOfIncomeUploadProgress = 0; // Reset progress
+        this.uploadSelectedFile('proof-of-income', file, documentType); // Standardize documentType string
       } else if (documentType === 'creditReport') {
         this.creditReportFile = file;
         this.creditReportFileName = file.name;
-      }
-    } else {
-      if (documentType === 'proofOfIncome') {
-        this.proofOfIncomeFile = null;
-        this.proofOfIncomeFileName = null;
-      } else if (documentType === 'creditReport') {
-        this.creditReportFile = null;
-        this.creditReportFileName = null;
+        this.creditReportUploadError = null; // Clear previous error
+        this.creditReportUploadProgress = 0; // Reset progress
+        this.uploadSelectedFile('credit-report', file, documentType); // Standardize documentType string
       }
     }
+    // Reset the file input so the same file can be selected again if needed after an error
+    element.value = '';
   }
 
-  onSubmit(): void {
-    this.successMessage = null;
-    this.errorMessage = null;
+  uploadSelectedFile(
+    docTypeStringForBackend: string,
+    file: File,
+    progressErrorType: 'proofOfIncome' | 'creditReport'
+  ): void {
+    if (!file) return;
+
+    // Update progress property for the specific document type
+    if (progressErrorType === 'proofOfIncome')
+      this.proofOfIncomeUploadProgress = 0;
+    else if (progressErrorType === 'creditReport')
+      this.creditReportUploadProgress = 0;
+
+    this.documentService
+      .uploadDocument(docTypeStringForBackend, file)
+      .subscribe({
+        next: (event: DocumentMetadata | number) => {
+          if (typeof event === 'number') {
+            // Progress event
+            if (progressErrorType === 'proofOfIncome')
+              this.proofOfIncomeUploadProgress = event;
+            else if (progressErrorType === 'creditReport')
+              this.creditReportUploadProgress = event;
+          } else if (event && typeof event === 'object') {
+            // Upload complete, event is DocumentMetadata
+            this.profileSuccessMessage = `${event.fileName} uploaded successfully!`;
+            if (progressErrorType === 'proofOfIncome') {
+              this.proofOfIncomeFile = null; // Clear the selected file
+              this.proofOfIncomeFileName = null;
+              this.proofOfIncomeUploadProgress = null;
+            } else if (progressErrorType === 'creditReport') {
+              this.creditReportFile = null;
+              this.creditReportFileName = null;
+              this.creditReportUploadProgress = null;
+            }
+            this.loadUserDocuments(); // Refresh the list of documents
+          }
+        },
+        error: (err) => {
+          const errorMsg = `Failed to upload ${file.name}: ${err.message}`;
+          if (progressErrorType === 'proofOfIncome') {
+            this.proofOfIncomeUploadError = errorMsg;
+            this.proofOfIncomeUploadProgress = null;
+          } else if (progressErrorType === 'creditReport') {
+            this.creditReportUploadError = errorMsg;
+            this.creditReportUploadProgress = null;
+          }
+          console.error(errorMsg, err);
+        },
+      });
+  }
+
+  onSubmitProfileData(): void {
+    // Renamed from onSubmit to be specific
+    this.profileSuccessMessage = null;
+    this.profileErrorMessage = null;
 
     if (!this.currentUserId) {
-      this.errorMessage =
+      this.profileErrorMessage =
         'Cannot save profile: User identity is missing. Please re-login.';
       return;
     }
 
     if (this.profileForm.valid) {
-      this.isLoading = true;
-
+      this.isLoadingProfile = true;
       const personalInfo = this.profileForm.get('personalInformation')?.value;
       const employmentInfo = this.profileForm.get(
         'employmentInformation'
       )?.value;
 
-      // **IMPORTANT: Map to what your backend UpdateUserRequest DTO expects**
       const updateRequestData: UpdateUserProfileRequest = {
         fullName: personalInfo.fullName,
+        streetAddress: personalInfo.streetAddress,
+        city: personalInfo.city,
+        state: personalInfo.state,
+        zipCode: personalInfo.zipCode,
         employmentStatus: employmentInfo.employmentStatus,
-        // If you expand UpdateUserRequest.java on the backend, add other fields here:
-        // streetAddress: personalInfo.streetAddress,
-        // city: personalInfo.city,
-        // state: personalInfo.state,
-        // zipCode: personalInfo.zipCode,
-        // employmentDetails: employmentInfo.employmentDetails,
+        employmentDetails: employmentInfo.employmentDetails,
       };
-
-      console.log('Submitting Profile Form Data:', updateRequestData);
-      // console.log('Proof of Income File:', this.proofOfIncomeFile); // Keep for when file upload is implemented
-      // console.log('Credit Report File:', this.creditReportFile);
 
       this.userProfileService
         .updateUserProfile(this.currentUserId, updateRequestData)
         .subscribe({
           next: (response) => {
-            console.log('Profile saved successfully', response);
-            this.successMessage = 'Profile updated successfully!';
-            this.isLoading = false;
-            // Optionally, reload profile data or update form with response if backend returns updated object
-            // this.loadUserProfile(this.currentUserId!);
+            this.profileSuccessMessage =
+              'Profile text data updated successfully!';
+            this.profileForm.markAsPristine();
+            this.isLoadingProfile = false;
           },
           error: (err) => {
-            console.error('Error saving profile', err);
-            this.errorMessage = `Failed to update profile: ${
-              err.message || 'Please try again.'
-            }`;
-            this.isLoading = false;
+            this.profileErrorMessage = `Failed to update profile data: ${err.message}`;
+            this.isLoadingProfile = false;
           },
         });
-
-      // File upload logic will be separate and likely happen after text data is saved or concurrently.
-      // For now, we are not submitting files.
-      // if (this.proofOfIncomeFile) { /* Call service to upload this.proofOfIncomeFile */ }
-      // if (this.creditReportFile) { /* Call service to upload this.creditReportFile */ }
     } else {
-      console.log('Profile form is invalid');
-      this.profileForm.markAllAsTouched(); // Show validation errors
-      this.errorMessage =
-        'Please correct the errors in the form before submitting.';
+      this.profileForm.markAllAsTouched();
+      this.profileErrorMessage =
+        'Please correct the errors in the profile form.';
     }
   }
 
-  // Helper getters
   get personalInfo() {
     return this.profileForm.get('personalInformation') as FormGroup;
   }

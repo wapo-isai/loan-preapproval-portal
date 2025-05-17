@@ -8,13 +8,12 @@ import { AuthService } from './auth/auth.service'; // To get user ID
 // Interface for the data structure your backend's UpdateUserRequest expects
 export interface UpdateUserProfileRequest {
   fullName: string;
+  streetAddress?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
   employmentStatus: string;
-  // If backend is updated, add other fields here:
-  // streetAddress?: string;
-  // city?: string;
-  // state?: string;
-  // zipCode?: string;
-  // employmentDetails?: string;
+  employmentDetails?: string;
 }
 
 // Interface for the data structure your backend might return for GET profile
@@ -22,14 +21,13 @@ export interface UpdateUserProfileRequest {
 export interface UserProfileData {
   id?: string; // Or number
   fullName?: string;
+  email?: string;
   streetAddress?: string;
   city?: string;
   state?: string;
   zipCode?: string;
   employmentStatus?: string;
   employmentDetails?: string;
-  email?: string; // Usually email is part of profile
-  // Add other fields your backend provides for a user's profile
 }
 
 @Injectable({

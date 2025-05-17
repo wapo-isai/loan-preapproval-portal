@@ -1,19 +1,17 @@
-// src/app/models/application.model.ts
-
 export enum ApplicationStatus {
   SUBMITTED = 'Submitted',
   UNDER_REVIEW = 'Under Review',
-  ADDITIONAL_INFO_REQUIRED = 'Additional Info Required', // Example of another status
+  ADDITIONAL_INFO_REQUIRED = 'Additional Info Required',
   APPROVED = 'Approved',
   REJECTED = 'Rejected',
-  AWAITING_REVIEW = 'Awaiting Review', // New status for "Mark for Review"
+  AWAITING_REVIEW = 'Awaiting Review',
 }
 
 export interface TimelineEvent {
-  status: ApplicationStatus; // Or a more general event type
+  status: ApplicationStatus;
   date: Date;
   description: string;
-  actor?: 'customer' | 'admin' | 'system'; // Who performed the action
+  actor?: 'customer' | 'admin' | 'system';
   icon?: string;
 }
 
@@ -21,32 +19,43 @@ export interface LoanApplication {
   id: string;
   submittedDate: Date;
   currentStatus: ApplicationStatus;
-  progress: number; // Percentage (0-100)
+  progress: number;
   loanAmount: number;
   homePrice: number;
   timeline: TimelineEvent[];
 }
 
-// For the list in admin portal
 export interface ApplicationListItem {
   id: string;
+  userId?: string; // From backend
+  applicantName?: string;
   loanAmount: number;
-  submissionDate: Date;
-  currentStatus: ApplicationStatus;
-  // Other summary fields if needed for display or filtering
-  applicantName?: string; // Example
+  submissionDate: Date | string; // Backend likely sends string
+  currentStatus: ApplicationStatus | string; // Backend likely sends string
 }
 
-// For the detailed view in admin portal
-export interface AdminApplicationDetail extends ApplicationListItem {
+export interface AdminApplicationDetail {
+  id: string;
+  userId?: string;
+  applicantName?: string; // To be populated if possible
+  loanAmount: number;
   homePrice: number;
-  ltvRatio?: number; // Will calculate
   annualIncome: number;
-  totalDebt: number;
-  dtiRatio?: number; // Will calculate
+  totalDebt: number; // This is 'monthlyDebt' from your backend LoanApplication.java
   creditScore: number;
-  statusHistory: TimelineEvent[]; // Or a more detailed history
+  employmentStatus?: string; // From backend
+  currentStatus: ApplicationStatus | string; // Backend likely sends string
+  submissionDate?: Date | string;
+  statusHistory: TimelineEvent[];
   adminNotes?: string;
-  // Potentially all fields from the original LoanApplication form
-  // For now, focusing on what's visible in the screenshot
+  ltvRatio?: number; // Calculated
+  dtiRatio?: number; // Calculated
+  // Add other fields from backend LoanApplication if needed for display
+  eligible?: boolean;
+  evaluationReason?: string;
+}
+
+// For PATCH request to update status
+export interface StatusUpdateRequestPayload {
+  status: string;
 }

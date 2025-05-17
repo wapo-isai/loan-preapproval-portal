@@ -1,23 +1,24 @@
-// src/app/models/loan-application.model.ts
+import { TimelineEvent } from './application.model';
+
 export interface BackendLoanApplication {
-  // Matches your Java LoanApplication entity
-  id?: string; // Optional for new submissions, present for responses
+  id: string; // Changed from id?: string - ID should be present for fetched app details
   userId: string;
   homePrice: number;
   loanAmount: number;
   annualIncome: number;
-  monthlyDebt: number; // Corresponds to 'currentDebt' from form
+  monthlyDebt: number;
   creditScore: number;
-  employmentStatus: string; // Added this field
-  status: string; // e.g., "Submitted", "Draft", "Under Review"
-  submittedAt?: Date; // Will be set by backend
-  updatedAt?: Date; // Will be set by backend
+  employmentStatus: string;
+  status: string; // This will be the raw string status from the backend
+  submittedAt?: Date | string; // Allow string as backend usually sends ISO strings
+  updatedAt?: Date | string; // Allow string
   eligible?: boolean;
   evaluationReason?: string;
-  // Add any other fields that are part of the request/response
+  timeline: TimelineEvent[]; // This field is correctly named here
+  adminNotes?: string; // <-- ADDED adminNotes field (optional as it might not always be present)
+  // Add any other fields that your backend LoanApplication.java entity returns
 }
 
-// For submitting a new application or saving a draft
 export interface NewLoanApplicationPayload {
   userId: string;
   homePrice: number;
@@ -26,6 +27,5 @@ export interface NewLoanApplicationPayload {
   monthlyDebt: number;
   creditScore: number;
   employmentStatus: string;
-  status: string; // "Draft" or "Submitted"
-  // other relevant fields from the form if your backend takes them directly for new submissions
+  status: string;
 }

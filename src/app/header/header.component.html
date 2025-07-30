@@ -1,0 +1,21 @@
+<header class="header-container">
+  <div class="logo" routerLink="/">MortgageEase</div>
+  <nav>
+    <ng-container *ngIf="!isUserLoggedIn">
+      <a routerLink="/signin" class="nav-link">Sign in</a>
+      <button class="btn btn-primary" routerLink="/signup">Get Started</button>
+    </ng-container>
+
+    <ng-container *ngIf="isUserLoggedIn">
+      <a routerLink="/profile" class="nav-link profile-link">My Profile</a>
+      <a routerLink="/loan-application" class="nav-link">Apply for Loan</a>
+      <a
+        *ngIf="authService.hasRole('ROLE_ADMIN')"
+        routerLink="/admin-portal"
+        class="nav-link admin-link"
+        >Admin Portal</a
+      >
+      <button class="btn btn-outline" (click)="logout()">Logout</button>
+    </ng-container>
+  </nav>
+</header>

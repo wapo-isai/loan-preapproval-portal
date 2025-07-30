@@ -1,0 +1,283 @@
+<div class="profile-page-container">
+  <header class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your personal information and documents</p>
+  </header>
+
+  <form
+    [formGroup]="profileForm"
+    (ngSubmit)="onSubmitProfileData()"
+    class="profile-form"
+  >
+    <section class="form-section card">
+      <div class="section-header">
+        <h2>Personal Information</h2>
+        <p>Update your personal details and address</p>
+      </div>
+      <div formGroupName="personalInformation">
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input
+            type="text"
+            id="fullName"
+            formControlName="fullName"
+            placeholder="John Doe"
+          />
+        </div>
+        <div class="form-group">
+          <label for="streetAddress">Street Address</label>
+          <input
+            type="text"
+            id="streetAddress"
+            formControlName="streetAddress"
+            placeholder="123 Main St"
+          />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              formControlName="city"
+              placeholder="Anytown"
+            />
+          </div>
+          <div class="form-group">
+            <label for="state">State</label>
+            <input
+              type="text"
+              id="state"
+              formControlName="state"
+              placeholder="CA"
+            />
+          </div>
+          <div class="form-group">
+            <label for="zipCode">ZIP Code</label>
+            <input
+              type="text"
+              id="zipCode"
+              formControlName="zipCode"
+              placeholder="12345"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section card">
+      <div class="section-header">
+        <h2>Employment Information</h2>
+        <p>Provide details about your current employment</p>
+      </div>
+      <div formGroupName="employmentInformation">
+        <div class="form-group">
+          <label for="employmentStatus">Employment Status</label>
+          <select id="employmentStatus" formControlName="employmentStatus">
+            <option value="" disabled>Select your employment status</option>
+            <option *ngFor="let status of employmentStatuses" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="employmentDetails">Employment Details</label>
+          <textarea
+            id="employmentDetails"
+            formControlName="employmentDetails"
+            rows="4"
+            placeholder="Provide details about your employer, position, and duration of employment"
+          ></textarea>
+        </div>
+        <p class="form-hint">
+          This information helps us assess your loan eligibility.
+        </p>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary btn-save-profile"
+        [disabled]="profileForm.invalid || isLoadingProfile"
+      >
+        <i class="fas fa-save"></i>
+        {{ isLoadingProfile ? "Saving..." : "Save Profile Data" }}
+      </button>
+    </div>
+    <div *ngIf="profileSuccessMessage" class="alert alert-success">
+      {{ profileSuccessMessage }}
+    </div>
+    <div *ngIf="profileErrorMessage" class="alert alert-danger">
+      {{ profileErrorMessage }}
+    </div>
+  </form>
+
+  <section class="form-section card document-management-section">
+    <div class="section-header">
+      <h2>Document Upload</h2>
+      <p>Upload verification documents for your mortgage application</p>
+    </div>
+
+    <div class="document-upload-container">
+      <div class="upload-card">
+        <div class="upload-header">
+          <i class="fas fa-file-invoice-dollar icon"></i>
+          <h3>Proof of Income</h3>
+        </div>
+        <p>
+          Upload pay stubs, W2 forms, or tax returns as proof of your income.
+          (PDF, JPG, PNG - Max 10MB)
+        </p>
+        <input
+          type="file"
+          id="proofOfIncomeInput"
+          (change)="onFileSelected($event, 'proofOfIncome')"
+          #proofOfIncomeInput
+          hidden
+          accept=".pdf,.jpg,.jpeg,.png"
+        />
+        <button
+          type="button"
+          class="btn btn-outline"
+          (click)="proofOfIncomeInput.click()"
+          [disabled]="
+            proofOfIncomeUploadProgress !== null &&
+            proofOfIncomeUploadProgress < 100
+          "
+        >
+          {{ proofOfIncomeFileName ? "Change File" : "Choose Proof of Income" }}
+        </button>
+        <div
+          *ngIf="
+            proofOfIncomeFileName &&
+            (proofOfIncomeUploadProgress === null ||
+              proofOfIncomeUploadProgress === 100)
+          "
+          class="file-name-display"
+        >
+          Selected: {{ proofOfIncomeFileName }}
+        </div>
+        <div
+          *ngIf="proofOfIncomeUploadProgress !== null"
+          class="upload-progress-container"
+        >
+          <div
+            class="upload-progress-bar"
+            [style.width.%]="proofOfIncomeUploadProgress"
+          >
+            {{ proofOfIncomeUploadProgress }}%
+          </div>
+        </div>
+        <div
+          *ngIf="proofOfIncomeUploadError"
+          class="error-message alert alert-danger small-alert"
+        >
+          {{ proofOfIncomeUploadError }}
+        </div>
+      </div>
+
+      <div class="upload-card">
+        <div class="upload-header">
+          <i class="fas fa-credit-card icon"></i>
+          <h3>Credit Report</h3>
+        </div>
+        <p>
+          Upload your recent credit report or authorization to pull your credit.
+          (PDF - Max 10MB)
+        </p>
+        <input
+          type="file"
+          id="creditReportInput"
+          (change)="onFileSelected($event, 'creditReport')"
+          #creditReportInput
+          hidden
+          accept=".pdf"
+        />
+        <button
+          type="button"
+          class="btn btn-outline"
+          (click)="creditReportInput.click()"
+          [disabled]="
+            creditReportUploadProgress !== null &&
+            creditReportUploadProgress < 100
+          "
+        >
+          {{ creditReportFileName ? "Change File" : "Choose Credit Report" }}
+        </button>
+        <div
+          *ngIf="
+            creditReportFileName &&
+            (creditReportUploadProgress === null ||
+              creditReportUploadProgress === 100)
+          "
+          class="file-name-display"
+        >
+          Selected: {{ creditReportFileName }}
+        </div>
+        <div
+          *ngIf="creditReportUploadProgress !== null"
+          class="upload-progress-container"
+        >
+          <div
+            class="upload-progress-bar"
+            [style.width.%]="creditReportUploadProgress"
+          >
+            {{ creditReportUploadProgress }}%
+          </div>
+        </div>
+        <div
+          *ngIf="creditReportUploadError"
+          class="error-message alert alert-danger small-alert"
+        >
+          {{ creditReportUploadError }}
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="uploaded-documents-section"
+      *ngIf="userDocuments.length > 0 || isDocumentsLoading"
+    >
+      <h4>Uploaded Documents</h4>
+      <div *ngIf="isDocumentsLoading" class="loading-indicator small-loading">
+        Loading documents...
+      </div>
+      <div *ngIf="documentsError" class="alert alert-danger">
+        {{ documentsError }}
+      </div>
+      <ul
+        *ngIf="!isDocumentsLoading && userDocuments.length > 0"
+        class="document-list"
+      >
+        <li *ngFor="let doc of userDocuments" class="document-item">
+          <i class="fas fa-file-alt document-icon"></i>
+          <span class="doc-name">{{ doc.fileName }}</span>
+          <span class="doc-type">({{ doc.documentType }})</span>
+          <span class="doc-date"
+            >Uploaded: {{ doc.uploadedAt | date : "short" }}</span
+          >
+          <a
+            *ngIf="doc.presignedUrl"
+            [href]="doc.presignedUrl"
+            target="_blank"
+            class="btn btn-sm btn-download"
+            title="Download {{ doc.fileName }}"
+          >
+            <i class="fas fa-download"></i> Download
+          </a>
+          <span *ngIf="!doc.presignedUrl" class="text-muted small"
+            >(Download link unavailable)</span
+          >
+        </li>
+      </ul>
+      <p
+        *ngIf="
+          !isDocumentsLoading && userDocuments.length === 0 && !documentsError
+        "
+      >
+        No documents uploaded yet.
+      </p>
+    </div>
+  </section>
+</div>

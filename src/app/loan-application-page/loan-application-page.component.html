@@ -1,0 +1,298 @@
+<div class="loan-app-page-container">
+  <header class="page-header">
+    <h1>Loan Application</h1>
+    <p>Please provide your financial information to check your eligibility</p>
+  </header>
+
+  <form
+    [formGroup]="loanApplicationForm"
+    (ngSubmit)="onSubmitApplication()"
+    class="loan-app-form card"
+  >
+    <div class="section-header">
+      <h2>Loan Details</h2>
+      <p>Enter your loan requirements and financial information</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group slider-group">
+        <label for="loanAmount">Loan Amount</label>
+        <input
+          type="text"
+          id="loanAmount"
+          formControlName="loanAmount"
+          (input)="onTextInput($event, 'loanAmount')"
+          placeholder="e.g., 200000"
+          [class.is-invalid]="
+            loanAmountCtrl?.invalid && loanAmountCtrl?.touched
+          "
+        />
+        <input
+          type="range"
+          class="slider"
+          [min]="minLoanAmount"
+          [max]="maxLoanAmount"
+          [step]="loanStep"
+          formControlName="loanAmount"
+          id="loanAmountSlider"
+        />
+        <div class="value-display">
+          {{ loanAmountCtrl?.value | currency : "USD" : "symbol" : "1.0-0" }}
+        </div>
+        <div
+          *ngIf="
+            loanAmountCtrl?.invalid &&
+            (loanAmountCtrl?.dirty || loanAmountCtrl?.touched)
+          "
+          class="error-message"
+        >
+          <small *ngIf="loanAmountCtrl?.errors?.['required']"
+            >Loan amount is required.</small
+          >
+          <small
+            *ngIf="loanAmountCtrl?.errors?.['min'] || loanAmountCtrl?.errors?.['max']"
+          >
+            Must be between {{ minLoanAmount | currency }} and
+            {{ maxLoanAmount | currency }}.
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group slider-group">
+        <label for="homePrice">Home Price</label>
+        <input
+          type="text"
+          id="homePrice"
+          formControlName="homePrice"
+          (input)="onTextInput($event, 'homePrice')"
+          placeholder="e.g., 250000"
+          [class.is-invalid]="homePriceCtrl?.invalid && homePriceCtrl?.touched"
+        />
+        <input
+          type="range"
+          class="slider"
+          [min]="minHomePrice"
+          [max]="maxHomePrice"
+          [step]="homePriceStep"
+          formControlName="homePrice"
+          id="homePriceSlider"
+        />
+        <div class="value-display">
+          {{ homePriceCtrl?.value | currency : "USD" : "symbol" : "1.0-0" }}
+        </div>
+        <div
+          *ngIf="
+            homePriceCtrl?.invalid &&
+            (homePriceCtrl?.dirty || homePriceCtrl?.touched)
+          "
+          class="error-message"
+        >
+          <small *ngIf="homePriceCtrl?.errors?.['required']"
+            >Home price is required.</small
+          >
+          <small
+            *ngIf="homePriceCtrl?.errors?.['min'] || homePriceCtrl?.errors?.['max']"
+          >
+            Must be between {{ minHomePrice | currency }} and
+            {{ maxHomePrice | currency }}.
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group slider-group">
+        <label for="annualIncome">Annual Income</label>
+        <input
+          type="text"
+          id="annualIncome"
+          formControlName="annualIncome"
+          (input)="onTextInput($event, 'annualIncome')"
+          placeholder="e.g., 75000"
+          [class.is-invalid]="
+            annualIncomeCtrl?.invalid && annualIncomeCtrl?.touched
+          "
+        />
+        <input
+          type="range"
+          class="slider"
+          [min]="minAnnualIncome"
+          [max]="maxAnnualIncome"
+          [step]="incomeStep"
+          formControlName="annualIncome"
+          id="annualIncomeSlider"
+        />
+        <div class="value-display">
+          {{ annualIncomeCtrl?.value | currency : "USD" : "symbol" : "1.0-0" }}
+        </div>
+        <div
+          *ngIf="
+            annualIncomeCtrl?.invalid &&
+            (annualIncomeCtrl?.dirty || annualIncomeCtrl?.touched)
+          "
+          class="error-message"
+        >
+          <small *ngIf="annualIncomeCtrl?.errors?.['required']"
+            >Annual income is required.</small
+          >
+          <small
+            *ngIf="annualIncomeCtrl?.errors?.['min'] || annualIncomeCtrl?.errors?.['max']"
+          >
+            Must be between {{ minAnnualIncome | currency }} and
+            {{ maxAnnualIncome | currency }}.
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group slider-group">
+        <label for="currentDebt">Current Monthly Debt</label>
+        <input
+          type="text"
+          id="currentDebt"
+          formControlName="currentDebt"
+          (input)="onTextInput($event, 'currentDebt')"
+          placeholder="e.g., 1000"
+          [class.is-invalid]="
+            currentDebtCtrl?.invalid && currentDebtCtrl?.touched
+          "
+        />
+        <input
+          type="range"
+          class="slider"
+          [min]="minCurrentDebt"
+          [max]="maxCurrentDebt"
+          [step]="debtStep"
+          formControlName="currentDebt"
+          id="currentDebtSlider"
+        />
+        <div class="value-display">
+          {{ currentDebtCtrl?.value | currency : "USD" : "symbol" : "1.0-0" }}
+        </div>
+        <div
+          *ngIf="
+            currentDebtCtrl?.invalid &&
+            (currentDebtCtrl?.dirty || currentDebtCtrl?.touched)
+          "
+          class="error-message"
+        >
+          <small *ngIf="currentDebtCtrl?.errors?.['required']"
+            >Current debt is required.</small
+          >
+          <small
+            *ngIf="currentDebtCtrl?.errors?.['min'] || currentDebtCtrl?.errors?.['max']"
+          >
+            Must be between {{ minCurrentDebt | currency }} and
+            {{ maxCurrentDebt | currency }}.
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="employmentStatus">Employment Status</label>
+      <select
+        id="employmentStatus"
+        formControlName="employmentStatus"
+        [class.is-invalid]="
+          employmentStatusCtrl?.invalid && employmentStatusCtrl?.touched
+        "
+      >
+        <option value="" disabled>Select your employment status</option>
+        <option *ngFor="let status of employmentStatuses" [value]="status">
+          {{ status }}
+        </option>
+      </select>
+      <div
+        *ngIf="
+          employmentStatusCtrl?.invalid &&
+          (employmentStatusCtrl?.dirty || employmentStatusCtrl?.touched)
+        "
+        class="error-message"
+      >
+        <small *ngIf="employmentStatusCtrl?.errors?.['required']"
+          >Employment status is required.</small
+        >
+      </div>
+    </div>
+
+    <div class="form-group slider-group credit-score-group">
+      <label for="creditScore">Credit Score</label>
+      <input
+        type="text"
+        id="creditScore"
+        formControlName="creditScore"
+        (input)="onTextInput($event, 'creditScore')"
+        placeholder="e.g., 700"
+        [class.is-invalid]="
+          creditScoreCtrl?.invalid && creditScoreCtrl?.touched
+        "
+      />
+      <input
+        type="range"
+        class="slider"
+        [min]="minCreditScore"
+        [max]="maxCreditScore"
+        [step]="creditScoreStep"
+        formControlName="creditScore"
+        id="creditScoreSlider"
+      />
+      <div class="value-display">
+        {{ creditScoreCtrl?.value }} / {{ maxCreditScore }}
+      </div>
+      <div
+        *ngIf="
+          creditScoreCtrl?.invalid &&
+          (creditScoreCtrl?.dirty || creditScoreCtrl?.touched)
+        "
+        class="error-message"
+      >
+        <small *ngIf="creditScoreCtrl?.errors?.['required']"
+          >Credit score is required.</small
+        >
+        <small
+          *ngIf="creditScoreCtrl?.errors?.['min'] || creditScoreCtrl?.errors?.['max']"
+        >
+          Must be between {{ minCreditScore }} and {{ maxCreditScore }}.
+        </small>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-indicator">Processing...</div>
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+    <div class="form-actions-section">
+      <div class="form-group checkbox-group">
+        <input
+          type="checkbox"
+          id="saveProgress"
+          formControlName="saveProgress"
+        />
+        <label for="saveProgress">Save progress and complete later</label>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn btn-outline" (click)="onSaveDraft()">
+          Save Draft
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="
+            loanApplicationForm.invalid &&
+            !loanApplicationForm.get('saveProgress')?.value
+          "
+        >
+          Submit Application
+        </button>
+      </div>
+    </div>
+
+    <div class="form-footer-note">
+      <p>
+        Your information is secure and will only be used for loan eligibility
+        assessment.
+      </p>
+    </div>
+  </form>
+</div>

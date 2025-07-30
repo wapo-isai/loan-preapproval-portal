@@ -1,0 +1,276 @@
+<div class="admin-portal-container">
+  <header class="page-header">
+    <h1>Admin Portal</h1>
+    <button
+      type="button"
+      class="btn btn-outline btn-back"
+      (click)="goBackToProfile()"
+    >
+      Back to Profile
+    </button>
+  </header>
+
+  <div class="admin-content-area card">
+    <section class="applications-list-section">
+      <h2>Loan Applications</h2>
+      <div *ngIf="isLoadingList" class="loading-indicator">
+        Loading applications...
+      </div>
+      <div
+        *ngIf="!isLoadingList && applications.length === 0"
+        class="empty-list"
+      >
+        No applications found.
+      </div>
+
+      <table
+        *ngIf="!isLoadingList && applications.length > 0"
+        class="applications-table"
+      >
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Applicant Name</th>
+            <th>Loan Amount</th>
+            <th>Submission Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let app of applications"
+            (click)="viewApplicationDetails(app.id)"
+            [class.selected-row]="selectedApplication?.id === app.id"
+          >
+            <td>{{ app.id }}</td>
+            <td>{{ app.applicantName || "N/A" }}</td>
+            <td>
+              {{ app.loanAmount | currency : "USD" : "symbol" : "1.0-0" }}
+            </td>
+            <td>{{ app.submissionDate | date : "shortDate" }}</td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(app.currentStatus)"
+              >
+                {{ app.currentStatus }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="btn btn-sm btn-details"
+                (click)="
+                  viewApplicationDetails(app.id); $event.stopPropagation()
+                "
+              >
+                View Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="application-details-section">
+      <div *ngIf="isLoadingDetails" class="loading-indicator">
+        Loading details...
+      </div>
+      <div
+        *ngIf="!selectedApplication && !isLoadingDetails"
+        class="details-placeholder"
+      >
+        Select an application to view details
+      </div>
+
+      <div
+        *ngIf="selectedApplication && !isLoadingDetails"
+        class="details-content"
+      >
+        <h3>Application {{ selectedApplication.id }}</h3>
+
+        <div class="detail-columns">
+          <div class="detail-column">
+            <h4>Loan Details</h4>
+            <div class="detail-item">
+              <span class="label">Loan Amount:</span>
+              <span class="value">{{
+                selectedApplication.loanAmount
+                  | currency : "USD" : "symbol" : "1.0-0"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Home Price:</span>
+              <span class="value">{{
+                selectedApplication.homePrice
+                  | currency : "USD" : "symbol" : "1.0-0"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">LTV Ratio:</span>
+              <span class="value"
+                >{{ selectedApplication.ltvRatio | number : "1.1-1" }}%</span
+              >
+            </div>
+          </div>
+          <div class="detail-column">
+            <h4>Financial Information</h4>
+            <div class="detail-item">
+              <span class="label">Annual Income:</span>
+              <span class="value">{{
+                selectedApplication.annualIncome
+                  | currency : "USD" : "symbol" : "1.0-0"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total Monthly Debt:</span>
+              <span class="value">{{
+                selectedApplication.totalDebt
+                  | currency : "USD" : "symbol" : "1.0-0"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">DTI Ratio:</span>
+              <span class="value"
+                >{{ selectedApplication.dtiRatio | number : "1.1-1" }}%</span
+              >
+            </div>
+            <div class="detail-item">
+              <span class="label">Credit Score:</span>
+              <span class="value">{{ selectedApplication.creditScore }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Employment Status:</span>
+              <span class="value">{{
+                selectedApplication.employmentStatus || "N/A"
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <section class="evaluation-outcome-section">
+          <h4>Automated Evaluation Outcome</h4>
+          <div
+            class="detail-item evaluation-status"
+            [class.eligible]="selectedApplication.eligible === true"
+            [class.not-eligible]="selectedApplication.eligible === false"
+          >
+            <span class="label">Eligibility:</span>
+            <span class="value">
+              <i
+                class="fas"
+                [ngClass]="
+                  selectedApplication.eligible
+                    ? 'fa-check-circle'
+                    : 'fa-times-circle'
+                "
+              ></i>
+              {{
+                selectedApplication.eligible
+                  ? "Eligible"
+                  : selectedApplication.eligible === false
+                  ? "Not Eligible"
+                  : "N/A"
+              }}
+            </span>
+          </div>
+          <div
+            class="detail-item evaluation-reason"
+            *ngIf="selectedApplication.evaluationReason"
+          >
+            <span class="label">Reason / Notes:</span>
+            <span class="value reason-text">{{
+              selectedApplication.evaluationReason
+            }}</span>
+          </div>
+          <div
+            class="detail-item evaluation-reason"
+            *ngIf="
+              !selectedApplication.evaluationReason &&
+              selectedApplication.eligible !== undefined
+            "
+          >
+            <span class="label">Reason / Notes:</span>
+            <span class="value reason-text">No specific reason provided.</span>
+          </div>
+        </section>
+        <h4>Status History</h4>
+        <ul class="timeline-list admin-timeline">
+          <li
+            *ngFor="let event of selectedApplication.statusHistory"
+            class="timeline-item"
+          >
+            <div class="timeline-icon-container">
+              <i
+                class="timeline-icon"
+                [ngClass]="event.icon || getTimelineIcon(event.status)"
+              ></i>
+            </div>
+            <div class="timeline-content">
+              <p class="timeline-status-title">
+                <strong>{{ event.status }}</strong>
+                <span class="timeline-date">{{
+                  event.date | date : "M/d/yyyy, h:mm a"
+                }}</span>
+              </p>
+              <p class="timeline-description">
+                {{ event.description }}
+                <em *ngIf="event.actor">({{ event.actor }})</em>
+              </p>
+            </div>
+          </li>
+          <li
+            *ngIf="selectedApplication.statusHistory.length === 0"
+            class="timeline-item empty"
+          >
+            No status history.
+          </li>
+        </ul>
+
+        <h4>Admin Notes</h4>
+        <form [formGroup]="adminNotesForm" (ngSubmit)="saveAdminNotes()">
+          <div class="form-group">
+            <textarea
+              id="adminNotes"
+              formControlName="notes"
+              rows="4"
+              placeholder="Add notes about this application..."
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-sm btn-outline"
+            [disabled]="adminNotesForm.pristine"
+          >
+            Save Notes
+          </button>
+        </form>
+
+        <div class="admin-actions">
+          <h4>Actions</h4>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="updateApplicationStatus(appStatuses.AWAITING_REVIEW)"
+          >
+            Mark for Review
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="updateApplicationStatus(appStatuses.REJECTED)"
+          >
+            <i class="fas fa-times"></i> Reject
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="updateApplicationStatus(appStatuses.APPROVED)"
+          >
+            <i class="fas fa-check"></i> Approve
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

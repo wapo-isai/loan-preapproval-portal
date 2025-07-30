@@ -1,0 +1,253 @@
+:host {
+  display: flex;
+  min-height: 100vh;
+}
+
+.signin-container {
+  display: flex;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.left-panel {
+  flex-basis: 40%;
+  background-color: #1a237e;
+  color: #ffffff;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.left-panel .logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  align-self: flex-start;
+}
+
+.welcome-text {
+  text-align: left;
+  max-width: 400px;
+}
+
+.welcome-text h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.welcome-text p {
+  font-size: 1.1em;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.footer-text {
+  font-size: 0.9em;
+  opacity: 0.8;
+  align-self: flex-start;
+}
+
+.right-panel {
+  flex-basis: 60%;
+  background-color: #ffffff;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 450px;
+}
+
+.form-container h2 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.form-container .sub-heading {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1em;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.label-wrapper label {
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9em;
+  margin-bottom: 0;
+}
+
+.forgot-password-link {
+  font-size: 0.85em;
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 15px;
+  color: #999;
+  font-size: 0.9em;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 15px 12px 40px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+}
+
+.visibility-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #777;
+  padding: 5px;
+}
+
+.visibility-toggle i {
+  font-size: 1em;
+}
+
+.error-message small {
+  color: #d9534f;
+  font-size: 0.8em;
+  display: block;
+  margin-top: 4px;
+}
+
+.error-message.server-error small {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background-color: #0056b3;
+  color: white;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #004494;
+}
+
+.btn-submit:disabled {
+  background-color: #a0c3e2;
+  cursor: not-allowed;
+}
+
+.signup-link {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.signup-link a {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+  .signin-container {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .left-panel {
+    min-height: 280px;
+    padding: 30px;
+    justify-content: center;
+    text-align: center;
+  }
+  .left-panel .logo,
+  .left-panel .footer-text,
+  .welcome-text {
+    align-self: center;
+    text-align: center;
+  }
+  .welcome-text h1 {
+    font-size: 2em;
+  }
+
+  .right-panel {
+    padding: 40px 20px;
+  }
+
+  .form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-container h2 {
+    font-size: 1.8em;
+  }
+}

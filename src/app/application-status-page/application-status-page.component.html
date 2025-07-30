@@ -1,0 +1,138 @@
+<div class="status-page-container">
+  <header class="page-header">
+    <h1>Application Status</h1>
+    <p>Track the progress of your mortgage application</p>
+  </header>
+
+  <div *ngIf="isLoading" class="loading-indicator">
+    <p>Loading application details...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="application && !isLoading && !error">
+    <div class="application-card card">
+      <section class="application-summary">
+        <div class="summary-header">
+          <div>
+            <h2>Application {{ application.id }}</h2>
+            <p class="submitted-date">
+              Submitted on {{ application.submittedDate | date : "shortDate" }}
+            </p>
+          </div>
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(application.currentStatus)"
+          >
+            {{ application.currentStatus }}
+          </span>
+        </div>
+
+        <div class="progress-section">
+          <label for="appProgress">Progress</label>
+          <div class="progress-bar-container">
+            <div
+              class="progress-bar"
+              [style.width.%]="application.progress"
+            ></div>
+          </div>
+          <span class="progress-percentage">{{ application.progress }}%</span>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Loan Amount</span>
+            <span class="detail-value">{{
+              application.loanAmount | currency : "USD" : "symbol" : "1.0-0"
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Home Price</span>
+            <span class="detail-value">{{
+              application.homePrice | currency : "USD" : "symbol" : "1.0-0"
+            }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="application-timeline">
+        <h3>Application Timeline</h3>
+        <ul class="timeline-list">
+          <li
+            *ngFor="let event of application.timeline; let isFirst = first"
+            class="timeline-item"
+            [class.first-item]="isFirst"
+          >
+            <div class="timeline-icon-container">
+              <i
+                class="timeline-icon"
+                [ngClass]="event.icon || getTimelineIcon(event.status)"
+              ></i>
+            </div>
+            <div class="timeline-content">
+              <p class="timeline-status-title">
+                <strong>{{ event.status }}</strong>
+                <span class="timeline-date">{{
+                  event.date | date : "M/d/yyyy, h:mm:ss a"
+                }}</span>
+              </p>
+              <p class="timeline-description">{{ event.description }}</p>
+            </div>
+          </li>
+          <li
+            *ngIf="application.timeline.length === 0"
+            class="timeline-item empty"
+          >
+            No timeline events yet.
+          </li>
+        </ul>
+      </section>
+
+      <section class="contact-info">
+        <p>
+          For any questions about your application, please contact our support
+          team.
+        </p>
+      </section>
+    </div>
+
+    <div class="demo-controls-card card">
+      <h3>Demo Controls</h3>
+      <p>Change application status for testing</p>
+      <div class="demo-buttons">
+        <button
+          class="btn btn-sm"
+          (click)="changeDemoStatus(demoStatuses.SUBMITTED)"
+          [class.active]="application.currentStatus === demoStatuses.SUBMITTED"
+        >
+          Mark as Submitted
+        </button>
+        <button
+          class="btn btn-sm btn-info"
+          (click)="changeDemoStatus(demoStatuses.UNDER_REVIEW)"
+          [class.active]="
+            application.currentStatus === demoStatuses.UNDER_REVIEW
+          "
+        >
+          Mark as Under Review
+        </button>
+        <button
+          class="btn btn-sm btn-success"
+          (click)="changeDemoStatus(demoStatuses.APPROVED)"
+          [class.active]="application.currentStatus === demoStatuses.APPROVED"
+        >
+          Mark as Approved
+        </button>
+        <button
+          class="btn btn-sm btn-danger"
+          (click)="changeDemoStatus(demoStatuses.REJECTED)"
+          [class.active]="application.currentStatus === demoStatuses.REJECTED"
+        >
+          Mark as Rejected
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

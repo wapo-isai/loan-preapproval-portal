@@ -1,0 +1,47 @@
+.feature-card {
+  background-color: #ffffff;
+  padding: 30px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  text-align: left;
+  flex-basis: 300px;
+  flex-grow: 1;
+  max-width: 350px;
+  box-sizing: border-box;
+}
+
+.feature-card h3 {
+  font-size: 1.4em;
+  color: #0056b3;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.feature-card p {
+  font-size: 0.95em;
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+@media (max-width: 992px) {
+  .feature-card {
+    flex-basis: 80%;
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-card {
+    flex-basis: 100%;
+    padding: 25px;
+  }
+  .feature-card h3 {
+    font-size: 1.3em;
+  }
+  .feature-card p {
+    font-size: 0.9em;
+  }
+}
